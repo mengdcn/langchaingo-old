@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 var (
@@ -164,17 +163,17 @@ func autoRefresh(c *Client) error {
 		return err
 	}
 	c.accessToken = authResp.AccessToken
-	go func() { // 30 day expiration, auto refresh access token per 10 days
-		for {
-			authResp, err := c.getAccessToken(context.Background())
-			if err != nil {
-				time.Sleep(tryPeriod * time.Minute) // try
-				continue
-			}
-			c.accessToken = authResp.AccessToken
-			time.Sleep(10 * 24 * time.Hour)
-		}
-	}()
+	//go func() { // 30 day expiration, auto refresh access token per 10 days
+	//	for {
+	//		authResp, err := c.getAccessToken(context.Background())
+	//		if err != nil {
+	//			time.Sleep(tryPeriod * time.Minute) // try
+	//			continue
+	//		}
+	//		c.accessToken = authResp.AccessToken
+	//		time.Sleep(10 * 24 * time.Hour)
+	//	}
+	//}()
 	return nil
 }
 
