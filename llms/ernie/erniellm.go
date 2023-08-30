@@ -97,7 +97,7 @@ func (l *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 	generations := make([]*llms.Generation, 0, len(prompts))
 	for _, prompt := range prompts {
 		result, err := l.client.CreateCompletion(ctx, l.getModelPath(opts), &ernieclient.CompletionRequest{
-			Messages:      []ernieclient.Message{{Role: "user", Content: prompt}},
+			Messages:      []*ernieclient.Message{{Role: "user", Content: prompt}},
 			Temperature:   opts.Temperature,
 			TopP:          opts.TopP,
 			PenaltyScore:  opts.RepetitionPenalty,
