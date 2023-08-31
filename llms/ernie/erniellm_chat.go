@@ -27,6 +27,15 @@ func NewChat(opts ...Option) (*Chat, error) {
 	}, err
 }
 
+// NewChat returns a new OpenAI chat LLM.
+func NewChatWithCallback(handler callbacks.Handler, opts ...Option) (*Chat, error) {
+	c, err := newClient(opts...)
+	return &Chat{
+		client:           c,
+		CallbacksHandler: handler,
+	}, err
+}
+
 // Call requests a chat response for the given messages.
 func (o *Chat) Call(ctx context.Context, messages []schema.ChatMessage, options ...llms.CallOption) (*schema.AIChatMessage, error) { // nolint: lll
 	r, err := o.Generate(ctx, [][]schema.ChatMessage{messages}, options...)
@@ -63,7 +72,11 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 			return nil, err
 		}
 		generations = append(generations, &llms.Generation{
-			Text: result.Result,
+			Text:    result.Result,
+			Message: &schema.AIChatMessage{Content: result.Result},
+			GenerationInfo: map[string]any{"PromptTokens": result.Usage.PromptTokens,
+				"CompletionTokens": result.Usage.CompletionTokens,
+				"TotalTokens":      result.Usage.TotalTokens},
 		})
 	}
 	if o.CallbacksHandler != nil {

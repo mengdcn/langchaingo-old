@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/tmc/langchaingo/callbacks"
 	"os"
 
 	"github.com/tmc/langchaingo/llms"
@@ -17,8 +18,9 @@ var (
 )
 
 type LLM struct {
-	client *ernieclient.Client
-	model  ModelName
+	CallbacksHandler callbacks.Handler
+	client           *ernieclient.Client
+	model            ModelName
 }
 
 var (
@@ -89,6 +91,9 @@ func (l *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOptio
 
 // Generate implements llms.LLM.
 func (l *LLM) Generate(ctx context.Context, prompts []string, options ...llms.CallOption) ([]*llms.Generation, error) {
+	if l.CallbacksHandler != nil {
+		l.CallbacksHandler.HandleLLMStart(ctx, prompts)
+	}
 	opts := llms.CallOptions{}
 	for _, opt := range options {
 		opt(&opts)
@@ -109,7 +114,14 @@ func (l *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 		}
 		generations = append(generations, &llms.Generation{
 			Text: result.Result,
+			GenerationInfo: map[string]any{"PromptTokens": result.Usage.PromptTokens,
+				"CompletionTokens": result.Usage.CompletionTokens,
+				"TotalTokens":      result.Usage.TotalTokens},
 		})
+	}
+
+	if l.CallbacksHandler != nil {
+		l.CallbacksHandler.HandleLLMEnd(ctx, llms.LLMResult{Generations: [][]*llms.Generation{generations}})
 	}
 
 	return generations, nil
