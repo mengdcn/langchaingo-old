@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/schema"
 	"log"
 
@@ -11,8 +12,7 @@ import (
 )
 
 func main() {
-	chatHandler := ChatHandler{}
-	llm, err := ernie.NewChatWithCallback(chatHandler, ernie.WithModelName(ernie.ModelNameERNIEBot))
+	llm, err := ernie.NewChatWithCallback(callbacks.LogHandler{}, ernie.WithModelName(ernie.ModelNameERNIEBot))
 	// note:
 	// You would include ernie.WithAKSK(apiKey,secretKey) to use specific auth info.
 	// You would include ernie.WithModelName(ernie.ModelNameERNIEBot) to use the ERNIE-Bot model.
