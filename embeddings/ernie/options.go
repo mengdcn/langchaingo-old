@@ -13,9 +13,9 @@ const (
 type Option func(p *Ernie)
 
 // WithClient is an option for providing the LLM client.
-func WithClient(client *ernie.LLM) Option {
+func WithClient(client ernie.LLM) Option {
 	return func(e *Ernie) {
-		e.client = client
+		e.client = &client
 	}
 }
 
