@@ -13,9 +13,9 @@ const (
 type Option func(p *OpenAI)
 
 // WithClient is an option for providing the LLM client.
-func WithClient(client *openai.LLM) Option {
+func WithClient(client openai.LLM) Option {
 	return func(p *OpenAI) {
-		p.client = client
+		p.client = &client
 	}
 }
 
