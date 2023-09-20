@@ -90,7 +90,8 @@ func (c *Client) CreateCompletion(ctx context.Context, r *CompletionRequest) (*C
 		return nil, ErrEmptyResponse
 	}
 	return &Completion{
-		Text: resp.Data.Choices[0].Content,
+		Text:  resp.Data.Choices[0].Content,
+		Usage: resp.Data.Usage,
 	}, nil
 }
 
@@ -137,6 +138,7 @@ func (c *Client) CreateChat(ctx context.Context, r *ChatRequest) (*ChatResponse,
 		return nil, err
 	}
 	if resp.Code != 200 || !resp.Success || len(resp.Data.Choices) == 0 {
+		fmt.Println(resp.Code, resp.Success, len(resp.Data.Choices))
 		return nil, ErrEmptyResponse
 	}
 	return resp, nil

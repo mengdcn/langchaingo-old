@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
+	"strings"
 )
 
 const (
@@ -43,7 +43,7 @@ type StreamedChatResponsePayload struct {
 	ID    string `json:"ID,omitempty"`
 	Event string `json:"event,omitempty"`
 	Data  string `json:"data,omitempty"`
-	Meta  Meta   `json:"meta,omitempty"`
+	Meta  *Meta  `json:"meta,omitempty"`
 }
 
 type Meta struct {
@@ -106,18 +106,23 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 	responseChan := make(chan StreamedChatResponsePayload)
 	go func() {
 		defer close(responseChan)
+		// 消息单元
+		unitMsg := StreamedChatResponsePayload{}
 		for scanner.Scan() {
 			line := scanner.Text()
-			log.Println(line)
+			// 空行是消息单元结束标志
 			if line == "" {
+				responseChan <- unitMsg
+				// 发送一个消息单元后重新初始化消息单元
+				unitMsg = StreamedChatResponsePayload{}
 				continue
 			}
-			chunkResp, err := decodeStreamData(line)
+			err := decodeStreamData(line, &unitMsg)
 			if err != nil {
 				log.Printf("failed to decode stream payload: %v", err)
 				break
 			}
-			responseChan <- *chunkResp
+
 		}
 		if err := scanner.Err(); err != nil {
 			log.Println("issue scanning response:", err)
@@ -125,16 +130,23 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 	}()
 	// Parse response
 	response := ChatResponse{
+		Code:    200,
+		Success: true,
 		Data: Data{
 			Choices: []*Choices{
 				{},
 			},
+			Usage: Usage{},
 		},
 	}
 
 	for streamResponse := range responseChan {
 		chunk := []byte(streamResponse.Data)
-		response.Data.Choices[0].Content += streamResponse.Data
+		if streamResponse.Event == eventAdd {
+			response.Data.Choices[0].Content += streamResponse.Data
+		} else if streamResponse.Event == eventFinish {
+			response.Data.Usage = streamResponse.Meta.Usage
+		}
 
 		if payload.StreamingFunc != nil {
 			err := payload.StreamingFunc(ctx, chunk)
@@ -146,62 +158,51 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 	return &response, nil
 }
 
-// 数据格式
-// id: "fb981fde-0080-4933-b87b-4a29eaba8d17"
-// event: "add"
-// data: "作为一个"
-//
-// id: "fb981fde-0080-4933-b87b-4a29eaba8d17"
-// event: "add"
-// data: "大型语言模型"
-//
-// id: "fb981fde-0080-4933-b87b-4a29eaba8d17"
-// event: "add"
-// data: "我可以"
-//
-// ... ...
-//
-// Id: "fb981fde-0080-4933-b87b-4a29eaba8d17"
-// event: "finish"
-// meta: {"request_id":"123445676789","task_id":"75931252186628","task_status":"SUCCESS","usage":{"prompt_tokens":215,"completion_tokens":302,"total_tokens":517}}
-func decodeStreamData(line string) (*StreamedChatResponsePayload, error) {
-	if line == "" {
-		return nil, errors.New("结果为空")
-	}
-	re := regexp.MustCompile(`id:\s*"(.*?)"\s*event:\s*"(.*?)"\s*`)
-	reData := regexp.MustCompile(`data:\s*"(.*?)"`)
-	regMeta := regexp.MustCompile(`meta:\s*({.*?}})`)
-	matches := re.FindStringSubmatch(line)
-	if len(matches) != 3 {
-		return nil, errors.New("数据解析失败:" + line)
-	}
-	resp := &StreamedChatResponsePayload{}
-	if matches[2] == eventAdd {
-		resp.ID = matches[1]
-		resp.Event = matches[2]
-		matches1 := reData.FindStringSubmatch(line)
-		if len(matches1) != 2 {
-			return nil, errors.New("未匹配到data:" + line)
-		}
-		resp.Data = matches1[1]
+// 数据格式, 流式数据返回格式
+// 2023/09/20 19:11:42 event:add
+// 2023/09/20 19:11:42 id:7951544019094669224
+// 2023/09/20 19:11:42 data:和支持
+// 2023/09/20 19:11:42
+// 2023/09/20 19:11:42 event:add
+// 2023/09/20 19:11:42 id:7951544019094669224
+// 2023/09/20 19:11:42 data:。
+// 2023/09/20 19:11:42
+// 2023/09/20 19:11:42 event:finish
+// 2023/09/20 19:11:42 id:7951544019094669224
+// 2023/09/20 19:11:42 data:
+// 2023/09/20 19:11:42 meta:{"task_status":"SUCCESS","usage":{"completion_tokens":59,"prompt_tokens":0,"total_tokens":59},"task_id":"7951544019094669224","request_id":"7951544019094669224"}
+func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
+	var event, id, data, meta string
 
-	} else if matches[2] == eventError || matches[2] == eventnterrupted {
-		return nil, errors.New("error:" + line)
-	} else if matches[2] == eventFinish {
-		resp.ID = matches[1]
-		resp.Event = matches[2]
-		matches2 := regMeta.FindStringSubmatch(line)
-		if len(matches2) != 2 {
-			return nil, errors.New("未匹配到meta:" + line)
-		}
-		meta := Meta{}
-		err := json.Unmarshal([]byte(matches2[1]), &meta)
-		if err != nil {
-			return nil, errors.New("meta解码失败：" + line)
-		}
-		resp.Meta = meta
-	} else {
-		return nil, errors.New("未知的消息事件：" + line)
+	if strings.HasPrefix(line, "event:") {
+		event = strings.TrimPrefix(line, "event:")
+		//log.Println(line, "event:", event)
+	} else if strings.HasPrefix(line, "id:") {
+		id = strings.TrimPrefix(line, "id:")
+		//log.Println(line, "id:", id)
+	} else if strings.HasPrefix(line, "data:") {
+		data = strings.TrimPrefix(line, "data:")
+		//log.Println(line, "data:", data)
+	} else if strings.HasPrefix(line, "meta:") {
+		meta = strings.TrimPrefix(line, "meta:")
+		//log.Println(line, "meta:", meta)
 	}
-	return resp, nil
+	if event != "" {
+		resp.Event = event
+	}
+	if id != "" {
+		resp.ID = id
+	}
+	if data != "" {
+		resp.Data = data
+	}
+	if meta != "" {
+		metaS := &Meta{}
+		err := json.Unmarshal([]byte(meta), metaS)
+		if err != nil {
+			return err
+		}
+		resp.Meta = metaS
+	}
+	return nil
 }
