@@ -71,14 +71,16 @@ type Completion struct {
 	IsTruncated      bool   `json:"is_truncated"`
 	Result           string `json:"result"`
 	NeedClearHistory bool   `json:"need_clear_history"`
-	Usage            struct {
-		PromptTokens     int `json:"prompt_tokens"`
-		CompletionTokens int `json:"completion_tokens"`
-		TotalTokens      int `json:"total_tokens"`
-	} `json:"usage"`
+	Usage            Usage  `json:"usage"`
 	// for error
 	ErrorCode int    `json:"error_code,omitempty"`
 	ErrorMsg  string `json:"error_msg,omitempty"`
+}
+
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens,omitempty"`
+	CompletionTokens int `json:"completion_tokens,omitempty"`
+	TotalTokens      int `json:"total_tokens,omitempty"`
 }
 
 type EmbeddingResponse struct {
@@ -90,10 +92,7 @@ type EmbeddingResponse struct {
 		Embedding []float64 `json:"embedding"`
 		Index     int       `json:"index"`
 	} `json:"data"`
-	Usage struct {
-		PromptTokens int `json:"prompt_tokens"`
-		TotalTokens  int `json:"total_tokens"`
-	} `json:"usage"`
+	Usage Usage `json:"usage"`
 	// for error
 	ErrorCode int    `json:"error_code,omitempty"`
 	ErrorMsg  string `json:"error_msg,omitempty"`

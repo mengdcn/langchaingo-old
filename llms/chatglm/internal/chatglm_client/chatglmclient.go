@@ -101,7 +101,7 @@ type EmbeddingRequest struct {
 }
 
 // CreateEmbedding 提供向量接口
-func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingRequest) ([]float64, error) {
+func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingRequest) ([]float64, Usage, error) {
 	if r.Model == "" {
 		r.Model = defaultEmbeddingModel
 	}
@@ -111,16 +111,16 @@ func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingRequest) ([]fl
 		RequestId: r.RequestId,
 	})
 	if err != nil {
-		return nil, err
+		return nil, Usage{}, err
 	}
 
 	if resp.Code != 200 || !resp.Success || len(resp.Data.Embedding) == 0 {
-		return nil, ErrEmptyResponse
+		return nil, Usage{}, ErrEmptyResponse
 	}
 
 	embeddings := make([]float64, 1024)
 	copy(embeddings, resp.Data.Embedding)
-	return embeddings, nil
+	return embeddings, resp.Data.Usage, nil
 }
 
 // CreateChat 提供chat接口

@@ -8,9 +8,12 @@ import (
 	"github.com/tmc/langchaingo/schema"
 )
 
+type Usage = chatglm_client.Usage
+
 type LLM struct {
 	CallbacksHandler callbacks.Handler
 	client           *chatglm_client.Client
+	usage            []chatglm_client.Usage
 }
 
 var (
@@ -22,6 +25,14 @@ func New(opts ...Option) (*LLM, error) {
 	c, err := newClient(opts...)
 	return &LLM{
 		client: c,
+	}, err
+}
+
+func NewWithCallback(handler callbacks.Handler, opts ...Option) (*LLM, error) {
+	c, err := newClient(opts...)
+	return &LLM{
+		CallbacksHandler: handler,
+		client:           c,
 	}, err
 }
 
@@ -38,6 +49,8 @@ func (o *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOptio
 }
 
 func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.CallOption) ([]*llms.Generation, error) {
+	// 每次调用前清空usage
+	o.ResetUsage()
 	if o.CallbacksHandler != nil {
 		o.CallbacksHandler.HandleLLMStart(ctx, prompts)
 	}
@@ -67,6 +80,8 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 				"CompletionTokens": result.Usage.CompletionTokens,
 				"TotalTokens":      result.Usage.TotalTokens},
 		})
+		// 将本次调用的usage暂存
+		o.usage = append(o.usage, result.Usage)
 	}
 
 	if o.CallbacksHandler != nil {
@@ -80,15 +95,25 @@ func (o *LLM) GeneratePrompt(ctx context.Context, promptValues []schema.PromptVa
 	return llms.GeneratePrompt(ctx, o, promptValues, options...)
 }
 
+// 与openai的实现方式不同, 无法计算
 func (o *LLM) GetNumTokens(text string) int {
 	return 0
+}
+
+func (o *LLM) ResetUsage() {
+	o.usage = make([]chatglm_client.Usage, 0, 1)
+}
+
+func (o *LLM) GetUsage() []Usage {
+	return o.usage
 }
 
 // CreateEmbedding creates embeddings for the given input texts.
 func (o *LLM) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
 	embeddings := make([][]float64, 0, 1)
+	o.ResetUsage()
 	for _, input := range inputTexts {
-		embedding, err := o.client.CreateEmbedding(ctx, &chatglm_client.EmbeddingRequest{
+		embedding, use, err := o.client.CreateEmbedding(ctx, &chatglm_client.EmbeddingRequest{
 			Input: input,
 		})
 		if err != nil {
@@ -98,6 +123,8 @@ func (o *LLM) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]flo
 			return nil, ErrEmptyResponse
 		}
 		embeddings = append(embeddings, embedding)
+		// 用于记录本次token使用情况
+		o.usage = append(o.usage, use)
 
 	}
 	if len(inputTexts) != len(embeddings) {

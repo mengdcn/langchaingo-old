@@ -12,6 +12,7 @@ import (
 type Chat struct {
 	CallbacksHandler callbacks.Handler
 	client           *ernieclient.Client
+	usage            []ernieclient.Usage
 }
 
 var (
@@ -50,6 +51,7 @@ func (o *Chat) Call(ctx context.Context, messages []schema.ChatMessage, options 
 
 //nolint:funlen
 func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage, options ...llms.CallOption) ([]*llms.Generation, error) { // nolint:lll,cyclop
+	o.ResetUsage()
 	if o.CallbacksHandler != nil {
 		o.CallbacksHandler.HandleLLMStart(ctx, getPromptsFromMessageSets(messageSets))
 	}
@@ -78,6 +80,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 				"CompletionTokens": result.Usage.CompletionTokens,
 				"TotalTokens":      result.Usage.TotalTokens},
 		})
+		o.usage = append(o.usage, result.Usage)
 	}
 	if o.CallbacksHandler != nil {
 		o.CallbacksHandler.HandleLLMEnd(ctx, llms.LLMResult{Generations: [][]*llms.Generation{generations}})
@@ -89,12 +92,21 @@ func (o *Chat) GetNumTokens(text string) int {
 	return 0
 }
 
+func (o *Chat) ResetUsage() {
+	o.usage = make([]ernieclient.Usage, 0, 1)
+}
+
+func (o *Chat) GetUsage() []Usage {
+	return o.usage
+}
+
 func (o *Chat) GeneratePrompt(ctx context.Context, promptValues []schema.PromptValue, options ...llms.CallOption) (llms.LLMResult, error) { //nolint:lll
 	return llms.GenerateChatPrompt(ctx, o, promptValues, options...)
 }
 
 // CreateEmbedding creates embeddings for the given input texts.
 func (o *Chat) CreateEmbedding(ctx context.Context, texts []string) ([][]float64, error) {
+	o.ResetUsage()
 	resp, e := o.client.CreateEmbedding(ctx, texts)
 	if e != nil {
 		return nil, e
@@ -108,6 +120,7 @@ func (o *Chat) CreateEmbedding(ctx context.Context, texts []string) ([][]float64
 	emb := make([][]float64, 0, len(texts))
 	for i := range resp.Data {
 		emb = append(emb, resp.Data[i].Embedding)
+		o.usage = append(o.usage, resp.Usage)
 	}
 
 	return emb, nil
@@ -134,16 +147,12 @@ func messagesToClientMessages(messages []schema.ChatMessage) []*ernieclient.Mess
 		}
 		typ := m.GetType()
 		switch typ {
-		case schema.ChatMessageTypeSystem:
-			msg.Role = "system"
 		case schema.ChatMessageTypeAI:
 			msg.Role = "assistant"
 		case schema.ChatMessageTypeHuman:
 			msg.Role = "user"
 		case schema.ChatMessageTypeGeneric:
 			msg.Role = "user"
-		case schema.ChatMessageTypeFunction:
-			msg.Role = "function"
 		}
 		msgs[i] = msg
 	}

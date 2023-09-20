@@ -14,6 +14,7 @@ type ChatMessage = chatglm_client.ChatMessage
 type Chat struct {
 	CallbacksHandler callbacks.Handler
 	client           *chatglm_client.Client
+	usage            []chatglm_client.Usage
 }
 
 const (
@@ -34,6 +35,14 @@ func NewChat(opts ...Option) (*Chat, error) {
 	}, err
 }
 
+func NewChatWithCallback(handler callbacks.Handler, opts ...Option) (*Chat, error) {
+	c, err := newClient(opts...)
+	return &Chat{
+		CallbacksHandler: handler,
+		client:           c,
+	}, err
+}
+
 // Call requests a chat response for the given messages.
 func (o *Chat) Call(ctx context.Context, messages []schema.ChatMessage, options ...llms.CallOption) (*schema.AIChatMessage, error) { // nolint: lll
 	r, err := o.Generate(ctx, [][]schema.ChatMessage{messages}, options...)
@@ -48,6 +57,7 @@ func (o *Chat) Call(ctx context.Context, messages []schema.ChatMessage, options 
 
 //nolint:funlen
 func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage, options ...llms.CallOption) ([]*llms.Generation, error) { // nolint:lll,cyclop
+	o.ResetUsage()
 	if o.CallbacksHandler != nil {
 		o.CallbacksHandler.HandleLLMStart(ctx, getPromptsFromMessageSets(messageSets))
 	}
@@ -102,6 +112,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 			Text:           msg.Content,
 			GenerationInfo: generationInfo,
 		})
+		o.usage = append(o.usage, result.Data.Usage)
 	}
 
 	if o.CallbacksHandler != nil {
@@ -115,15 +126,24 @@ func (o *Chat) GetNumTokens(text string) int {
 	return 0
 }
 
+func (o *Chat) ResetUsage() {
+	o.usage = make([]chatglm_client.Usage, 0, 1)
+}
+
+func (o *Chat) GetUsage() []Usage {
+	return o.usage
+}
+
 func (o *Chat) GeneratePrompt(ctx context.Context, promptValues []schema.PromptValue, options ...llms.CallOption) (llms.LLMResult, error) { //nolint:lll
 	return llms.GenerateChatPrompt(ctx, o, promptValues, options...)
 }
 
 // CreateEmbedding creates embeddings for the given input texts.
 func (o *Chat) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
+	o.ResetUsage()
 	embeddings := make([][]float64, 0, 1)
 	for _, input := range inputTexts {
-		embedding, err := o.client.CreateEmbedding(ctx, &chatglm_client.EmbeddingRequest{
+		embedding, use, err := o.client.CreateEmbedding(ctx, &chatglm_client.EmbeddingRequest{
 			Input: input,
 		})
 		if err != nil {
@@ -133,6 +153,7 @@ func (o *Chat) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]fl
 			return nil, ErrEmptyResponse
 		}
 		embeddings = append(embeddings, embedding)
+		o.usage = append(o.usage, use)
 
 	}
 	if len(inputTexts) != len(embeddings) {

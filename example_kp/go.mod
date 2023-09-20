@@ -23,6 +23,6 @@ require (
 	golang.org/x/sys v0.8.0 // indirect
 )
 
-replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => github.com/comqositi/langchaingo v0.1.2
+//replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => github.com/comqositi/langchaingo v0.1.2
 
-//replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => /home/lucas/bgy/comqositi/langchaingo
+replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => /home/lucas/bgy/comqositi/langchaingo

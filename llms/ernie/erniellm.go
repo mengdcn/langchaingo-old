@@ -17,10 +17,13 @@ var (
 	ErrCodeResponse  = errors.New("has error code")
 )
 
+type Usage = ernieclient.Usage
+
 type LLM struct {
 	CallbacksHandler callbacks.Handler
 	client           *ernieclient.Client
 	model            ModelName
+	usage            []ernieclient.Usage
 }
 
 var (
@@ -75,6 +78,14 @@ func (l *LLM) GetNumTokens(_ string) int {
 	return -1
 }
 
+func (l *LLM) ResetUsage() {
+	l.usage = make([]ernieclient.Usage, 0, 1)
+}
+
+func (l *LLM) GetUsage() []Usage {
+	return l.usage
+}
+
 // Call implements llms.LLM.
 func (l *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOption) (string, error) {
 	r, err := l.Generate(ctx, []string{prompt}, options...)
@@ -91,6 +102,7 @@ func (l *LLM) Call(ctx context.Context, prompt string, options ...llms.CallOptio
 
 // Generate implements llms.LLM.
 func (l *LLM) Generate(ctx context.Context, prompts []string, options ...llms.CallOption) ([]*llms.Generation, error) {
+	l.ResetUsage()
 	if l.CallbacksHandler != nil {
 		l.CallbacksHandler.HandleLLMStart(ctx, prompts)
 	}
@@ -118,6 +130,7 @@ func (l *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 				"CompletionTokens": result.Usage.CompletionTokens,
 				"TotalTokens":      result.Usage.TotalTokens},
 		})
+		l.usage = append(l.usage, result.Usage)
 	}
 
 	if l.CallbacksHandler != nil {
@@ -132,6 +145,7 @@ func (l *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 // 2. text runes counts less than 384
 // doc: https://cloud.baidu.com/doc/WENXINWORKSHOP/s/alj562vvu
 func (l *LLM) CreateEmbedding(ctx context.Context, texts []string) ([][]float64, error) {
+	l.ResetUsage()
 	resp, e := l.client.CreateEmbedding(ctx, texts)
 	if e != nil {
 		return nil, e
@@ -145,6 +159,7 @@ func (l *LLM) CreateEmbedding(ctx context.Context, texts []string) ([][]float64,
 	emb := make([][]float64, 0, len(texts))
 	for i := range resp.Data {
 		emb = append(emb, resp.Data[i].Embedding)
+		l.usage = append(l.usage, resp.Usage)
 	}
 
 	return emb, nil
