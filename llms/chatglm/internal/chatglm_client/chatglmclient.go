@@ -73,22 +73,64 @@ func New(id string,
 
 // CreateCompletion 提供completion接口
 func (c *Client) CreateCompletion(ctx context.Context, r *CompletionRequest) (*Completion, error) {
-	return nil, nil
+	resp, err := c.createCompletion(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 200 || !resp.Success || len(resp.Data.Choices) == 0 {
+		return nil, ErrEmptyResponse
+	}
+	return &Completion{
+		Text: resp.Data.Choices[0].Content,
+	}, nil
 }
 
 type EmbeddingRequest struct {
-	Model string `json:"model"`
-	Input string `json:"input"`
+	Model     string `json:"model"`
+	Input     string `json:"input"`
+	RequestId string `json:"request_id"`
 }
 
 // CreateEmbedding 提供向量接口
-func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingRequest) ([][]float64, error) {
-	return nil, nil
+func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingRequest) ([]float64, error) {
+	if r.Model == "" {
+		r.Model = defaultEmbeddingModel
+	}
+
+	resp, err := c.createEmbedding(ctx, &embeddingPayload{
+		Input:     r.Input,
+		RequestId: r.RequestId,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Code != 200 || !resp.Success || len(resp.Data.Embedding) == 0 {
+		return nil, ErrEmptyResponse
+	}
+
+	embeddings := make([]float64, 1024)
+	copy(embeddings, resp.Data.Embedding)
+	return embeddings, nil
 }
 
 // CreateChat 提供chat接口
 func (c *Client) CreateChat(ctx context.Context, r *ChatRequest) (*ChatResponse, error) {
-	return nil, nil
+	if r.Model == "" {
+		if c.model == "" {
+			r.Model = defaultChatModel
+		} else {
+			r.Model = c.model
+		}
+	}
+	resp, err := c.createChat(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Code != 200 || !resp.Success || len(resp.Data.Choices) == 0 {
+		return nil, ErrEmptyResponse
+	}
+	return resp, nil
 }
 
 // 设置权限
