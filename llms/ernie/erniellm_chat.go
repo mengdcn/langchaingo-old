@@ -86,7 +86,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 }
 
 func (o *Chat) GetNumTokens(text string) int {
-	return llms.CountTokens("o.client.Model", text)
+	return 0
 }
 
 func (o *Chat) GeneratePrompt(ctx context.Context, promptValues []schema.PromptValue, options ...llms.CallOption) (llms.LLMResult, error) { //nolint:lll

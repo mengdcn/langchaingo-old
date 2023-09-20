@@ -19,7 +19,8 @@ type errorMessage struct {
 	} `json:"error"`
 }
 type Completion struct {
-	Text string `json:"text"`
+	Text  string `json:"text"`
+	Usage Usage
 }
 
 type CompletionResponse struct {

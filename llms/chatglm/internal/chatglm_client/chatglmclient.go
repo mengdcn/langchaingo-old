@@ -68,6 +68,15 @@ func New(id string,
 			return nil, err
 		}
 	}
+	if c.baseURL == "" {
+		c.baseURL = defaultBaseURL
+	}
+	if c.model == "" {
+		c.model = defaultChatModel
+	}
+	if c.embeddingsModel == "" {
+		c.embeddingsModel = defaultEmbeddingModel
+	}
 	return c, nil
 }
 
@@ -140,7 +149,7 @@ func (c *Client) setHeader(req *http.Request) {
 }
 
 func (c *Client) buildURL(model string, method string) string {
-	return fmt.Sprintf(defaultBaseURL, model, method)
+	return fmt.Sprintf(c.baseURL, model, method)
 }
 
 func (c *Client) getAuthorization() string {
