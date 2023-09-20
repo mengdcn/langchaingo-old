@@ -277,6 +277,7 @@ func parseStreamingCompletionResponse(ctx context.Context, resp *http.Response, 
 		dataPrefix := "data: "
 		for scanner.Scan() {
 			line := scanner.Text()
+			fmt.Printf("%s", line)
 			if line == "" {
 				continue
 			}

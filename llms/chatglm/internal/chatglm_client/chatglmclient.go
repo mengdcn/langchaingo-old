@@ -138,7 +138,6 @@ func (c *Client) CreateChat(ctx context.Context, r *ChatRequest) (*ChatResponse,
 		return nil, err
 	}
 	if resp.Code != 200 || !resp.Success || len(resp.Data.Choices) == 0 {
-		fmt.Println(resp.Code, resp.Success, len(resp.Data.Choices))
 		return nil, ErrEmptyResponse
 	}
 	return resp, nil

@@ -21,7 +21,7 @@ func main() {
 	}
 	ctx := context.Background()
 	messages := []schema.ChatMessage{
-		schema.HumanChatMessage{Content: "介绍一下你自己"},
+		schema.HumanChatMessage{Content: "以李白的口吻写一首诗"},
 	}
 	completion, err := llm.Call(ctx, messages,
 		llms.WithTemperature(0.8),
@@ -35,6 +35,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%v", completion)
+	fmt.Println("=================")
+	fmt.Printf("%#v", llm.GetUsage())
+	fmt.Printf("%#v", completion)
 
 }
