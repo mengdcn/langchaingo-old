@@ -14,7 +14,7 @@ const (
 )
 
 type embeddingPayload struct {
-	Input     string `json:"input"`
+	Prompt    string `json:"prompt"`
 	RequestId string `json:"request_id,omitempty"`
 }
 
@@ -35,6 +35,7 @@ type EmbeddingData struct {
 
 // nolint:lll
 func (c *Client) createEmbedding(ctx context.Context, payload *embeddingPayload) (*embeddingResponsePayload, error) {
+	fmt.Printf("%#v\n", payload)
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return nil, fmt.Errorf("marshal payload: %w", err)
@@ -73,5 +74,6 @@ func (c *Client) createEmbedding(ctx context.Context, payload *embeddingPayload)
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 
+	fmt.Printf("%#v\n", response)
 	return &response, nil
 }

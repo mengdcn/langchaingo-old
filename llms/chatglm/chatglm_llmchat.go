@@ -128,7 +128,7 @@ func (o *Chat) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]fl
 	embeddings := make([][]float64, 0, 1)
 	for _, input := range inputTexts {
 		embedding, use, err := o.client.CreateEmbedding(ctx, &chatglm_client.EmbeddingRequest{
-			Input: input,
+			Prompt: input,
 		})
 		if err != nil {
 			return nil, err

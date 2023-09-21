@@ -97,7 +97,7 @@ func (c *Client) CreateCompletion(ctx context.Context, r *CompletionRequest) (*C
 
 type EmbeddingRequest struct {
 	Model     string `json:"model"`
-	Input     string `json:"input"`
+	Prompt    string `json:"prompt"`
 	RequestId string `json:"request_id"`
 }
 
@@ -108,7 +108,7 @@ func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingRequest) ([]fl
 	}
 
 	resp, err := c.createEmbedding(ctx, &embeddingPayload{
-		Input:     r.Input,
+		Prompt:    r.Prompt,
 		RequestId: r.RequestId,
 	})
 	if err != nil {
