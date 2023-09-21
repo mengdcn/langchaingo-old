@@ -68,22 +68,6 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 	}
 	generations := make([]*llms.Generation, 0, len(messageSets))
 	for _, messageSet := range messageSets {
-		msgs := make([]*chatglm_client.ChatMessage, len(messageSet))
-		for i, m := range messageSet {
-			msg := &chatglm_client.ChatMessage{
-				Content: m.GetContent(),
-			}
-			typ := m.GetType()
-			switch typ {
-			case schema.ChatMessageTypeAI:
-				msg.Role = RoleAssistant
-			case schema.ChatMessageTypeHuman:
-				msg.Role = RoleUser
-			case schema.ChatMessageTypeGeneric:
-				msg.Role = RoleUser
-			}
-			msgs[i] = msg
-		}
 		req := &chatglm_client.ChatRequest{
 			Model:         opts.Model,
 			Prompt:        messagesToClientMessages(messageSet),
