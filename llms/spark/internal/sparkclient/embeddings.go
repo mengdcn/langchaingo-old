@@ -13,11 +13,11 @@ const (
 	defaultEmbeddingModel = "spark_embedding"
 )
 
-type embeddingPayloadUser struct {
+type EmbeddingPayloadUser struct {
 	Prompt string `json:"prompt"`
 }
 
-type embeddingPayload struct {
+type EmbeddingPayload struct {
 	Header struct {
 		AppId string `json:"app_id"`
 	} `json:"header"`
@@ -26,7 +26,7 @@ type embeddingPayload struct {
 	}
 }
 
-type embeddingResponsePayload struct {
+type EmbeddingResponsePayload struct {
 	Header struct {
 		Code    int    `json:"code"`
 		Message string `json:"message"`
@@ -37,17 +37,17 @@ type embeddingResponsePayload struct {
 	} `json:"payload"`
 }
 
-func (c *Client) getParamEmbedding(p *embeddingPayloadUser) *embeddingPayload {
+func (c *Client) getParamEmbedding(p *EmbeddingPayloadUser) *EmbeddingPayload {
 	c.model = defaultEmbeddingModel
 	c.baseUrl = defaultBaseUrl3
 
-	resp := &embeddingPayload{}
+	resp := &EmbeddingPayload{}
 	resp.Header.AppId = c.appId
 	resp.Payload.Text = p.Prompt
 	return resp
 }
 
-func (c *Client) createEmbedding(ctx context.Context, payloadUser *embeddingPayloadUser) (*embeddingResponsePayload, error) {
+func (c *Client) createEmbedding(ctx context.Context, payloadUser *EmbeddingPayloadUser) (*EmbeddingResponsePayload, error) {
 	payload := c.getParamEmbedding(payloadUser)
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
@@ -79,7 +79,7 @@ func (c *Client) createEmbedding(ctx context.Context, payloadUser *embeddingPayl
 		return nil, fmt.Errorf("%s: %s", msg, errResp.Error.Message) // nolint:goerr113
 	}
 
-	var response embeddingResponsePayload
+	var response EmbeddingResponsePayload
 
 	if err := json.NewDecoder(r.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("decode response: %w", err)

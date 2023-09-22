@@ -27,11 +27,11 @@ type ChatRequestUser struct {
 	Model         string                                        `json:"model"`
 	Uid           string                                        `json:"uid,omitempty"`
 	Temperature   float64                                       `json:"temperature,omitempty"`
-	TopK          float64                                       `json:"top_k,omitempty"`
+	TopK          int                                           `json:"top_k,omitempty"`
 	MaxTokens     int                                           `json:"max_tokens,omitempty"`
 	ChatId        string                                        `json:"chat_id,o,omitempty"`
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
-	messages      []*Text                                       `json:"text"`
+	Messages      []*Text                                       `json:"text"`
 }
 
 type ChatRequest struct {
@@ -50,7 +50,7 @@ type Parameter struct {
 type ParameterChat struct {
 	Domain      string  `json:"domain"`
 	Temperature float64 `json:"temperature,omitempty"`
-	TopK        float64 `json:"top_k,omitempty"`
+	TopK        int     `json:"top_k,omitempty"`
 	MaxTokens   int     `json:"max_tokens,omitempty"`
 	ChatId      string  `json:"chat_id,omitempty"`
 }
@@ -127,7 +127,7 @@ func (c *Client) getParam(p *ChatRequestUser) *ChatRequest {
 		},
 		Payload: Payload{
 			Message: PayloadMessage{
-				Text: p.messages,
+				Text: p.Messages,
 			},
 		},
 		StreamingFunc: p.StreamingFunc,

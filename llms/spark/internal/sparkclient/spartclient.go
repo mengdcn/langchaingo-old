@@ -71,7 +71,7 @@ func (c *Client) CreateCompletion(ctx context.Context, r *ChatRequestUser) (*Com
 	return c.CreateCompletion(ctx, r)
 }
 
-func (c *Client) CreateEmbedding(ctx context.Context, r *embeddingPayloadUser) ([]float64, error) {
+func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingPayloadUser) ([]float64, error) {
 	resp, err := c.createEmbedding(ctx, r)
 	if err != nil {
 		return nil, err

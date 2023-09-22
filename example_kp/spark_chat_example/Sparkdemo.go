@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -23,20 +24,29 @@ import (
 
 var (
 	hostUrl   = "wss://aichat.xf-yun.com/v1.1/chat"
-	appid     = "37a53403"
-	apiSecret = "MjgwYjMwZDY2NWI4YWRlNzUzNmE0NDAw"
-	apiKey    = "eeacfc2d0e7a2cbe22b45f05750faebe"
+	appid     = os.Getenv("SPARK_APP_ID")
+	apiSecret = os.Getenv("SPARK_APP_SECRET")
+	apiKey    = os.Getenv("SPARK_APP_KEY")
 )
 
 func main() {
+	fmt.Println(appid)
+	fmt.Println(apiSecret)
+	fmt.Println(apiKey)
 	// fmt.Println(HmacWithShaTobase64("hmac-sha256", "hello\nhello", "hello"))
 	// st := time.Now()
 	d := websocket.Dialer{
 		HandshakeTimeout: 5 * time.Second,
 	}
+	fmt.Println(assembleAuthUrl1(hostUrl, apiKey, apiSecret))
+	fmt.Println("====")
 	//握手并建立websocket 连接
-	conn, resp, err := d.Dial(assembleAuthUrl1(hostUrl, apiKey, apiSecret), nil)
+	header := http.Header{}
+	header.Set("Content-type", "application/json")
+	conn, resp, err := d.Dial(assembleAuthUrl1(hostUrl, apiKey, apiSecret), header)
 	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Printf("%#v\n", resp)
 		panic(readResp(resp) + err.Error())
 		return
 	} else if resp.StatusCode != 101 {
