@@ -85,7 +85,7 @@ type Choices struct {
 	Text   []*ChoicesText `json:"text"`
 }
 type ChoicesText struct {
-	Context string `json:"context"`
+	Content string `json:"content"`
 	Role    string `json:"role"`
 	Index   int    `json:"index"`
 }
@@ -99,8 +99,8 @@ type Usage struct {
 }
 
 type ChatResponse struct {
-	Text  string
-	Usage Usage
+	Text  string `json:"text"`
+	Usage Usage  `json:"usage"`
 }
 
 // getParam 设置参数
@@ -182,17 +182,18 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 			fmt.Println("Error parsing JSON:", err)
 			return nil, err
 		}
-		fmt.Println(string(msg))
+		//fmt.Println(string(msg))
 		//解析数据
 
 		if data.Header.Code != 0 {
 			fmt.Printf("%#v\n", data.Payload)
 			return nil, errors.New("error:" + data.Header.Message)
 		}
-		if len(payload.Payload.Message.Text) > 0 {
+		fmt.Println(data.Payload.Choices.Text[0].Content)
+		if len(data.Payload.Choices.Text) > 0 {
 			// 全部文本组装
-			response.Text += payload.Payload.Message.Text[0].Content
-			chunk := []byte(payload.Payload.Message.Text[0].Content)
+			response.Text += data.Payload.Choices.Text[0].Content
+			chunk := []byte(data.Payload.Choices.Text[0].Content)
 			if payload.StreamingFunc != nil {
 				payload.StreamingFunc(ctx, chunk)
 			}

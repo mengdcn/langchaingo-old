@@ -68,7 +68,17 @@ func New(appId, appSecret, apiKey, model, baseUrl, embeddingModel string, httpCl
 
 // CreateCompletion 提供completion接口
 func (c *Client) CreateCompletion(ctx context.Context, r *ChatRequestUser) (*Completion, error) {
-	return c.CreateCompletion(ctx, r)
+	resp, err := c.createCompletion(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	if len(resp.Text) == 0 {
+		return nil, ErrEmptyResponse
+	}
+	return &Completion{
+		Text:  resp.Text,
+		Usage: resp.Usage,
+	}, nil
 }
 
 func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingPayloadUser) ([]float64, error) {
