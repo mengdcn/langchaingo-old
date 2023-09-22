@@ -189,7 +189,7 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 			fmt.Printf("%#v\n", data.Payload)
 			return nil, errors.New("error:" + data.Header.Message)
 		}
-		fmt.Println(data.Payload.Choices.Text[0].Content)
+		//fmt.Println(data.Payload.Choices.Text[0].Content)
 		if len(data.Payload.Choices.Text) > 0 {
 			// 全部文本组装
 			response.Text += data.Payload.Choices.Text[0].Content
