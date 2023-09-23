@@ -26,8 +26,8 @@ const (
 type ChatRequestUser struct {
 	Model         string                                        `json:"model"`
 	Uid           string                                        `json:"uid,omitempty"`
-	Temperature   float64                                       `json:"temperature,omitempty"`
-	TopK          int                                           `json:"top_k,omitempty"`
+	Temperature   float64                                       `json:"temperature,omitempty"` // [0,1]
+	TopK          int                                           `json:"top_k,omitempty"`       //取值为[1，6],默认为4
 	MaxTokens     int                                           `json:"max_tokens,omitempty"`
 	ChatId        string                                        `json:"chat_id,o,omitempty"`
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`

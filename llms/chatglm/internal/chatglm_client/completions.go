@@ -62,7 +62,7 @@ func (c *Client) setCompletionDefaults(payload *CompletionRequest) {
 
 func (c *Client) createCompletion(ctx context.Context, payload *CompletionRequest) (*ChatResponse, error) {
 	c.setCompletionDefaults(payload)
-	return c.CreateChat(ctx, &ChatRequest{
+	return c.createChat(ctx, &ChatRequest{
 		Model: payload.Model,
 		Prompt: []*ChatMessage{
 			{Role: "user", Content: payload.Prompt},
