@@ -14,15 +14,19 @@ const (
 )
 
 type EmbeddingPayload struct {
-	Model     string   `json:"model"`
-	Input     []string `json:"input"`
-	TextType  string   `json:"text_type"` //取值：query 或者 document，默认值为 document  ,存库使用document， 查询query
-	RequestId string   `json:"request_id,omitempty"`
+	Model      string  `json:"model"`
+	Input      EmbText `json:"input"`
+	Parameters struct {
+		TextType string `json:"text_type,omitempty"` //取值：query 或者 document，默认值为 document  ,存库使用document， 查询query
+	} `json:"parameters,omitempty"`
+}
+type EmbText struct {
+	Texts []string `json:"texts"`
 }
 
 type embeddingResponsePayload struct {
 	Output struct {
-		Embeddings []*struct {
+		Embeddings []struct {
 			TextIndex int       `json:"text_index"`
 			Embedding []float64 `json:"embedding"`
 		} `json:"embeddings"`
@@ -33,29 +37,39 @@ type embeddingResponsePayload struct {
 	RequestId string `json:"request_id"`
 }
 
+func (c *Client) setEmbeddingHeader(req *http.Request) {
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", c.apiKey)
+}
+
 func (c *Client) createEmbedding(ctx context.Context, payload *EmbeddingPayload) (*embeddingResponsePayload, error) {
-	fmt.Printf("%#v\n", payload)
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("marshal payload: %w", err)
-	}
 	if payload.Model == "" {
 		c.embeddingsModel = defaultEmbeddingModel
 	}
-	if c.baseURL == "" {
-		c.baseURL = defaultEmbeddingURL
+	c.baseURL = defaultEmbeddingURL
+	if payload.Parameters.TextType == "" {
+		payload.Parameters.TextType = "document"
 	}
+	payloadBytes, err := json.Marshal(payload)
+	//fmt.Println(string(payloadBytes))
+	if err != nil {
+		return nil, fmt.Errorf("marshal payload: %w", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL, bytes.NewReader(payloadBytes))
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
 	}
-	c.setHeader(req, false)
+	c.setEmbeddingHeader(req)
 
 	r, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("send request: %w", err)
 	}
 	defer r.Body.Close()
+
+	//ss, _ := io.ReadAll(r.Body)
+	//fmt.Println(string(ss))
 
 	if r.StatusCode != http.StatusOK {
 		msg := fmt.Sprintf("API returned unexpected status code: %d", r.StatusCode)
@@ -76,6 +90,6 @@ func (c *Client) createEmbedding(ctx context.Context, payload *EmbeddingPayload)
 		return nil, fmt.Errorf("decode response: %w", err)
 	}
 
-	fmt.Printf("%#v\n", response)
+	//fmt.Printf("%#v\n", response)
 	return &response, nil
 }

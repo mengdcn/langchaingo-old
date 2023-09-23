@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -31,24 +32,24 @@ type ChatRequestUser struct {
 	Model         string                                        `json:"model"`
 	BaseURL       string                                        `json:"base_url"`
 	Messages      []*ChatMessage                                `json:"messages"`
-	ResultFormat  string                                        `json:"result_format"` //text"表示旧版本的text "message"表示兼容openai的message
-	TopP          float64                                       `json:"top_p"`         // (0,1.0)
-	TopK          int                                           `json:"top_k"`         // (0, 100)
-	Send          uint64                                        `json:"send"`          // 默认1234
-	Temperature   float64                                       `json:"temperature"`   // (0,2) 默认1.0
-	EnableSearch  bool                                          `json:"enable_search"` //生成时，是否参考夸克搜索的结果。注意：打开搜索并不意味着一定会使用搜索结果；如果打开搜索，模型会将搜索结果作为prompt，进而“自行判断”是否生成结合搜索结果的文本，默认为false
+	ResultFormat  string                                        `json:"result_format,omitempty"` //text"表示旧版本的text "message"表示兼容openai的message
+	TopP          float64                                       `json:"top_p,omitempty"`         // (0,1.0)
+	TopK          int                                           `json:"top_k,omitempty"`         // (0, 100)
+	Send          uint64                                        `json:"send,omitempty"`          // 默认1234
+	Temperature   float64                                       `json:"temperature,omitempty"`   // (0,2) 默认1.0
+	EnableSearch  bool                                          `json:"enable_search,omitempty"` //生成时，是否参考夸克搜索的结果。注意：打开搜索并不意味着一定会使用搜索结果；如果打开搜索，模型会将搜索结果作为prompt，进而“自行判断”是否生成结合搜索结果的文本，默认为false
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
 }
 
 type ChatRequest struct {
 	Model         string                                        `json:"model"`
 	Input         Input                                         `json:"input"`
-	Parameters    Parameters                                    `json:"parameters"`
+	Parameters    Parameters                                    `json:"parameters,omitempty"`
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
 }
 
 type Input struct {
-	Messages []*ChatMessage `json:"prompt"`
+	Messages []*ChatMessage `json:"messages"`
 }
 
 type ChatMessage struct {
@@ -72,7 +73,6 @@ type ChatResponse struct {
 }
 
 type Output struct {
-	Text         string     `json:"text"`
 	FinishReason string     `json:"finish_reason"`
 	Choices      []*Choices `json:"choices,omitempty"`
 }
@@ -96,8 +96,7 @@ type StreamedChatResponsePayload struct {
 }
 type SseData struct {
 	Output struct {
-		FinishReason string `json:"finish_reason"`
-		Text         string `json:"text"`
+		Choices []*Choices `json:"choices"`
 	}
 	Usage     Usage
 	RequestId string `json:"request_id"`
@@ -138,6 +137,7 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 		sseEnable = true
 	}
 	payloadBytes, err := json.Marshal(payload)
+	//fmt.Println(string(payloadBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -153,6 +153,8 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 	}
 	defer r.Body.Close()
 	if r.StatusCode != http.StatusOK {
+		aa, _ := io.ReadAll(r.Body)
+		log.Println(string(aa))
 		msg := fmt.Sprintf("API returned unexpected status code: %d", r.StatusCode)
 
 		// No need to check the error here: if it fails, we'll just return the
@@ -167,8 +169,16 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 	if payload.StreamingFunc != nil {
 		return parseStreamingChatResponse(ctx, r, payload)
 	}
+	aa, _ := io.ReadAll(r.Body)
+	log.Println(string(aa))
 	var response ChatResponse
-	return &response, json.NewDecoder(r.Body).Decode(&response)
+	err2 := json.Unmarshal(aa, &response)
+	if err2 != nil {
+		fmt.Println("json.Unmarshal(aa, &response)")
+		fmt.Println(err2.Error())
+	}
+	return &response, err2
+
 }
 
 func (c *Client) setHeader(req *http.Request, sseEnable bool) {
@@ -191,8 +201,12 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 		unitMsg := StreamedChatResponsePayload{}
 		for scanner.Scan() {
 			line := scanner.Text()
+			//fmt.Println("line====aa")
+			//fmt.Println(line)
+			//fmt.Println("line====bb")
 			// 空行是消息单元结束标志
 			if line == "" {
+				//fmt.Printf("%#v\n", unitMsg.Data.Output.Choices[0])
 				responseChan <- unitMsg
 				// 发送一个消息单元后重新初始化消息单元
 				unitMsg = StreamedChatResponsePayload{}
@@ -220,13 +234,16 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 
 	pre := ""
 	for streamResponse := range responseChan {
+		if len(streamResponse.Data.Output.Choices) == 0 {
+			continue
+		}
 		var content string
-		if streamResponse.Data.Output.FinishReason == FinishReasonNull {
-			content = switchToAdd(streamResponse.Data.Output.Text, pre)
-			pre = content
-		} else if streamResponse.Data.Output.FinishReason == FinishReasonStop || streamResponse.Data.Output.FinishReason == FinishReasonLength {
+		if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonNull {
+			content = switchToAdd(streamResponse.Data.Output.Choices[0].Message.Content, pre)
+			pre = streamResponse.Data.Output.Choices[0].Message.Content
+		} else if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonStop || streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonLength {
 			response.Usage = streamResponse.Data.Usage
-			pre = content
+			pre = streamResponse.Data.Output.Choices[0].Message.Content
 		}
 
 		chunk := []byte(content)
@@ -243,18 +260,6 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 }
 
 // 数据格式, 流式数据返回格式
-// 2023/09/20 19:11:42 event:add
-// 2023/09/20 19:11:42 id:7951544019094669224
-// 2023/09/20 19:11:42 data:和支持
-// 2023/09/20 19:11:42
-// 2023/09/20 19:11:42 event:add
-// 2023/09/20 19:11:42 id:7951544019094669224
-// 2023/09/20 19:11:42 data:。
-// 2023/09/20 19:11:42
-// 2023/09/20 19:11:42 event:finish
-// 2023/09/20 19:11:42 id:7951544019094669224
-// 2023/09/20 19:11:42 data:
-// 2023/09/20 19:11:42 meta:{"task_status":"SUCCESS","usage":{"completion_tokens":59,"prompt_tokens":0,"total_tokens":59},"task_id":"7951544019094669224","request_id":"7951544019094669224"}
 func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 	var event, id, data string
 
@@ -278,9 +283,12 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 		}
 	}
 	if data != "" {
+		//fmt.Println(data)
 		sseData := &SseData{}
 		err := json.Unmarshal([]byte(data), sseData)
 		if err != nil {
+			fmt.Println("sseData fail")
+			fmt.Println(err.Error())
 			return err
 		}
 		resp.Data = sseData

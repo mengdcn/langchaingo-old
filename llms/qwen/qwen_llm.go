@@ -2,6 +2,7 @@ package qwen
 
 import (
 	"context"
+	"fmt"
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/qwen/internal/qwenclient"
@@ -74,10 +75,14 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 			StreamingFunc: opts.StreamingFunc,
 		})
 		if err != nil {
+			fmt.Println(err.Error())
 			return nil, err
 		}
+		if len(result.Output.Choices) == 0 {
+			continue
+		}
 		generations = append(generations, &llms.Generation{
-			Text: result.Output.Text,
+			Text: result.Output.Choices[0].Message.Content,
 			GenerationInfo: map[string]any{"PromptTokens": result.Usage.InputTokens,
 				"CompletionTokens": result.Usage.OutputTokens,
 				"TotalTokens":      result.Usage.InputTokens + result.Usage.OutputTokens},
@@ -117,7 +122,9 @@ func (o *LLM) GetUsage() []CompletionUsage {
 func (o *LLM) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
 	o.ResetUsage()
 	embeddings, use, err := o.client.CreateEmbedding(ctx, &qwenclient.EmbeddingPayload{
-		Input: inputTexts,
+		Input: qwenclient.EmbText{
+			Texts: inputTexts,
+		},
 	})
 	if err != nil {
 		return nil, err

@@ -62,7 +62,7 @@ func (c *Client) CreateCompletion(ctx context.Context, r *ChatRequestUser) (*Cha
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.Output.Text) == 0 {
+	if len(resp.Output.Choices) == 0 {
 		return nil, ErrEmptyResponse
 	}
 	return resp, nil
@@ -83,7 +83,7 @@ func (c *Client) CreateEmbedding(ctx context.Context, r *EmbeddingPayload) ([][]
 		return nil, 0, ErrEmptyResponse
 	}
 
-	embeddings := make([][]float64, 1536)
+	embeddings := make([][]float64, 0, 1)
 	for _, e := range resp.Output.Embeddings {
 		embeddings = append(embeddings, e.Embedding)
 	}
@@ -102,7 +102,7 @@ func (c *Client) CreateChat(ctx context.Context, r *ChatRequestUser) (*ChatRespo
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.Output.Text) == 0 {
+	if len(resp.Output.Choices) == 0 {
 		return nil, ErrEmptyResponse
 	}
 	return resp, nil

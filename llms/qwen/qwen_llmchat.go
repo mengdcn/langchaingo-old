@@ -161,7 +161,9 @@ func messagesToClientMessages(messages []schema.ChatMessage) []*qwenclient.ChatM
 func (o *Chat) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
 	o.ResetUsage()
 	embeddings, use, err := o.client.CreateEmbedding(ctx, &qwenclient.EmbeddingPayload{
-		Input: inputTexts,
+		Input: qwenclient.EmbText{
+			Texts: inputTexts,
+		},
 	})
 	if err != nil {
 		return nil, err
