@@ -3,23 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/tmc/langchaingo/embeddings/emb_chatglm"
 	"github.com/tmc/langchaingo/llms/chatglm"
 	"log"
 )
 
 func main() {
-	llm, err := chatglm.New()
+	llm, err := chatglm.New(chatglm.WithEnableSearch(true), chatglm.WithSearchQuery(""))
 	if err != nil {
 		log.Fatal(err)
 	}
 	ctx := context.Background()
-	//result, err := llm.Call(ctx, "介绍一下你自己")
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//}
-	//fmt.Println(result)
-	//fmt.Printf("%#v\n", llm.GetUsage())
+	result, err := llm.Call(ctx, "今天天气怎么样")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(result)
+	fmt.Printf("%#v\n", llm.GetUsage())
 	//
 	//llmChat, err := chatglm.NewChat()
 	//if err != nil {
@@ -47,14 +46,14 @@ func main() {
 	//fmt.Printf("%v\n", completion)
 
 	// 向量
-	emb, err := emb_chatglm.NewChatglm(emb_chatglm.WithClient(*llm))
-	if err != nil {
-		log.Fatal(err)
-	}
-	res, err := emb.EmbedDocuments(ctx, []string{"靠谱前程", "高考成绩"})
-	if err != nil {
-		log.Println(err.Error())
-		log.Fatal("emb.EmbedDocuments(ctx, []string{\"靠谱前程\", \"高考成绩\"}) error")
-	}
-	fmt.Println(res)
+	//emb, err := emb_chatglm.NewChatglm(emb_chatglm.WithClient(*llm))
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//res, err := emb.EmbedDocuments(ctx, []string{"靠谱前程", "高考成绩"})
+	//if err != nil {
+	//	log.Println(err.Error())
+	//	log.Fatal("emb.EmbedDocuments(ctx, []string{\"靠谱前程\", \"高考成绩\"}) error")
+	//}
+	//fmt.Println(res)
 }

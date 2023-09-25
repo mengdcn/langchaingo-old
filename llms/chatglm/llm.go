@@ -29,5 +29,5 @@ func newClient(opts ...Option) (*chatglm_client.Client, error) {
 		return nil, ErrMissingToken
 	}
 	return chatglm_client.New(options.id, options.secret, options.model, options.baseURL, options.token, options.tokenExpireTime,
-		options.httpClient, options.embeddingModel, options.cache)
+		options.httpClient, options.embeddingModel, options.cache, options.enableSearch, options.searchQuery)
 }

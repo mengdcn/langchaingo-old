@@ -26,6 +26,8 @@ type Client struct {
 	httpClient      Doer
 	embeddingsModel string
 	cache           Cache
+	EnableSearch    bool
+	SearchQuery     string
 }
 
 type Option func(client *Client) error
@@ -51,6 +53,8 @@ func New(id string,
 	httpClient Doer,
 	embeddingsModel string,
 	cache Cache,
+	enableSearch bool,
+	searchQuery string,
 	opts ...Option) (*Client, error) {
 	c := &Client{
 		id:              id,
@@ -62,6 +66,8 @@ func New(id string,
 		httpClient:      httpClient,
 		embeddingsModel: embeddingsModel,
 		cache:           cache,
+		EnableSearch:    enableSearch,
+		SearchQuery:     searchQuery,
 	}
 	for _, opt := range opts {
 		if err := opt(c); err != nil {

@@ -18,6 +18,8 @@ type options struct {
 	httpClient      chatglm_client.Doer
 	embeddingModel  string
 	cache           chatglm_client.Cache
+	enableSearch    bool
+	searchQuery     string
 }
 
 type Option func(*options)
@@ -71,5 +73,15 @@ func WithEmbeddingModel(embeddingModel string) Option {
 func WithCache(cache chatglm_client.Cache) Option {
 	return func(o *options) {
 		o.cache = cache
+	}
+}
+func WithEnableSearch(enableSearch bool) Option {
+	return func(o *options) {
+		o.enableSearch = enableSearch
+	}
+}
+func WithSearchQuery(searchQuery string) Option {
+	return func(o *options) {
+		o.searchQuery = searchQuery
 	}
 }

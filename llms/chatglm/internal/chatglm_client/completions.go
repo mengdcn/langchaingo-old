@@ -11,6 +11,7 @@ type CompletionRequest struct {
 	// sse返回需设置streamingFunc
 	// 结束时返回一个错误 Return an error to stop streaming early.
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
+	Ref           Ref                                           `json:"ref,omitempty"`
 }
 type errorMessage struct {
 	Error struct {
@@ -72,5 +73,6 @@ func (c *Client) createCompletion(ctx context.Context, payload *CompletionReques
 		RequestId:     payload.RequestId,
 		Incremental:   true, // 增量
 		StreamingFunc: payload.StreamingFunc,
+		Ref:           payload.Ref,
 	})
 }

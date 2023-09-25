@@ -70,6 +70,10 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 			TopP:        opts.TopP,
 			//RequestId:     opts.RequestId,
 			StreamingFunc: opts.StreamingFunc,
+			Ref: chatglm_client.Ref{
+				Enable:      o.client.EnableSearch,
+				SearchQuery: o.client.SearchQuery,
+			},
 		})
 		if err != nil {
 			return nil, err

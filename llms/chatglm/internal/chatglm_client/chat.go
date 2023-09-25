@@ -32,6 +32,11 @@ type ChatRequest struct {
 	// sse返回需设置streamingFunc
 	// 结束时返回一个错误 Return an error to stop streaming early.
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
+	Ref           Ref                                           `json:"ref,omitempty"`
+}
+type Ref struct {
+	Enable      bool   `json:"enable,omitempty"`
+	SearchQuery string `json:"search_query,omitempty"`
 }
 
 type ChatMessage struct {
@@ -65,6 +70,7 @@ func (c *Client) createChat(ctx context.Context, payload *ChatRequest) (*ChatRes
 		method = "invoke"
 	}
 	payloadBytes, err := json.Marshal(payload)
+	fmt.Println(string(payloadBytes))
 	if err != nil {
 		return nil, err
 	}

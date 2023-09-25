@@ -27,5 +27,5 @@ func newClient(opts ...Option) (*qwenclient.Client, error) {
 		return nil, ErrMissingToken
 	}
 	return qwenclient.New(options.apiKey, options.baseURL, options.model,
-		options.httpClient, options.embeddingModel)
+		options.httpClient, options.embeddingModel, options.EnableSearch)
 }

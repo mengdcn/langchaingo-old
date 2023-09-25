@@ -137,7 +137,7 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 		sseEnable = true
 	}
 	payloadBytes, err := json.Marshal(payload)
-	//fmt.Println(string(payloadBytes))
+	fmt.Println(string(payloadBytes))
 	if err != nil {
 		return nil, err
 	}

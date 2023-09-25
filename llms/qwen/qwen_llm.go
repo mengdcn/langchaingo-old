@@ -73,6 +73,7 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 			TopK:        opts.TopK,
 			//RequestId:     opts.RequestId,
 			StreamingFunc: opts.StreamingFunc,
+			EnableSearch:  o.client.EnableSearch,
 		})
 		if err != nil {
 			fmt.Println(err.Error())
