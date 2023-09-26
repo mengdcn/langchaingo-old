@@ -100,6 +100,8 @@ type SseData struct {
 	}
 	Usage     Usage
 	RequestId string `json:"request_id"`
+	Message   string `json:"message,omitempty"`
+	Code      string `json:"code,omitempty"`
 }
 
 func (c *Client) getParam(p *ChatRequestUser) *ChatRequest {
@@ -153,8 +155,6 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 	}
 	defer r.Body.Close()
 	if r.StatusCode != http.StatusOK {
-		aa, _ := io.ReadAll(r.Body)
-		log.Println(string(aa))
 		msg := fmt.Sprintf("API returned unexpected status code: %d", r.StatusCode)
 
 		// No need to check the error here: if it fails, we'll just return the
@@ -170,7 +170,6 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 		return parseStreamingChatResponse(ctx, r, payload)
 	}
 	aa, _ := io.ReadAll(r.Body)
-	log.Println(string(aa))
 	var response ChatResponse
 	err2 := json.Unmarshal(aa, &response)
 	if err2 != nil {
@@ -206,6 +205,10 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 			//fmt.Println("line====bb")
 			// 空行是消息单元结束标志
 			if line == "" {
+				if unitMsg.Event == "error" {
+					log.Println("模型调用报错：", unitMsg.Data.Message)
+					break
+				}
 				//fmt.Printf("%#v\n", unitMsg.Data.Output.Choices[0])
 				responseChan <- unitMsg
 				// 发送一个消息单元后重新初始化消息单元
@@ -234,6 +237,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 
 	pre := ""
 	for streamResponse := range responseChan {
+		fmt.Println(streamResponse.Data)
 		if len(streamResponse.Data.Output.Choices) == 0 {
 			continue
 		}

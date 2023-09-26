@@ -37,11 +37,11 @@ func main() {
 	messages := []schema.ChatMessage{
 		schema.HumanChatMessage{Content: "go语言写一个冒泡"},
 	}
+
 	completion, err := llmChat.Call(ctx, messages,
 		llms.WithTemperature(0.8),
 		llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
 			log.Println(string(chunk))
-			fmt.Println(string(chunk))
 			return nil
 		}),
 	)
