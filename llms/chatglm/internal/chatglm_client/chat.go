@@ -119,12 +119,16 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 			//fmt.Println(line)
 			// 是消息单元结束标志
 			if line == "" {
+				if strings.HasSuffix(unitMsg.Data, "\n") {
+					unitMsg.Data = unitMsg.Data[0:(len(unitMsg.Data) - 1)]
+				}
 				responseChan <- unitMsg
 				// 发送一个消息单元后重新初始化消息单元
 				unitMsg = StreamedChatResponsePayload{}
 				continue
 			}
 			err := decodeStreamData(line, &unitMsg)
+			//err := parse(line, &unitMsg)
 			if err != nil {
 				log.Printf("failed to decode stream payload: %v", err)
 				break
@@ -190,11 +194,10 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 		//log.Println(line, "id:", id)
 	} else if strings.HasPrefix(line, "data:") {
 		data = strings.TrimPrefix(line, "data:")
-		//fmt.Println(len(data))
-		if data == "" {
-			data = "\n"
-		}
-		//log.Println(line, "data:", data)
+		data += "\n"
+		//if data == "" {
+		//	data = "\n"
+		//}
 	} else if strings.HasPrefix(line, "meta:") {
 		meta = strings.TrimPrefix(line, "meta:")
 		//log.Println(line, "meta:", meta)
@@ -205,9 +208,7 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 	if id != "" {
 		resp.ID = id
 	}
-	if data != "" {
-		resp.Data += data
-	}
+	resp.Data += data
 
 	if meta != "" {
 		metaS := &Meta{}
