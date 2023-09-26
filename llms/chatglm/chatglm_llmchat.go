@@ -75,6 +75,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 			Temperature:   opts.Temperature,
 			TopP:          opts.TopP,
 			//RequestId : opts.RequestId,
+			Incremental: true,
 			Ref: chatglm_client.Ref{
 				Enable:      o.client.EnableSearch,
 				SearchQuery: o.client.SearchQuery,

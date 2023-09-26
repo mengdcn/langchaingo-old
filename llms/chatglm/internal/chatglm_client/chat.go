@@ -28,7 +28,7 @@ type ChatRequest struct {
 	TopP        float64        `json:"top_p,omitempty"`
 	RequestId   string         `json:"request_id,omitempty"`
 	// SSE接口调用时，用于控制每次返回内容方式是增量还是全量，不提供此参数时默认为增量返回, true 为增量返回 , false 为全量返回
-	Incremental bool `json:"incremental,omitempty"`
+	Incremental bool `json:"incremental"`
 	// sse返回需设置streamingFunc
 	// 结束时返回一个错误 Return an error to stop streaming early.
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
@@ -116,7 +116,8 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 		unitMsg := StreamedChatResponsePayload{}
 		for scanner.Scan() {
 			line := scanner.Text()
-			// 空行是消息单元结束标志
+			//fmt.Println(line)
+			// 是消息单元结束标志
 			if line == "" {
 				responseChan <- unitMsg
 				// 发送一个消息单元后重新初始化消息单元
@@ -147,6 +148,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 	}
 
 	for streamResponse := range responseChan {
+		//fmt.Printf("%#v\n", streamResponse)
 		chunk := []byte(streamResponse.Data)
 		if streamResponse.Event == eventAdd {
 			response.Data.Choices[0].Content += streamResponse.Data
@@ -188,6 +190,10 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 		//log.Println(line, "id:", id)
 	} else if strings.HasPrefix(line, "data:") {
 		data = strings.TrimPrefix(line, "data:")
+		fmt.Println(len(data))
+		if data == "" {
+			data = "\\n"
+		}
 		//log.Println(line, "data:", data)
 	} else if strings.HasPrefix(line, "meta:") {
 		meta = strings.TrimPrefix(line, "meta:")
@@ -200,8 +206,9 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 		resp.ID = id
 	}
 	if data != "" {
-		resp.Data = data
+		resp.Data += data
 	}
+
 	if meta != "" {
 		metaS := &Meta{}
 		err := json.Unmarshal([]byte(meta), metaS)
