@@ -192,7 +192,7 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 		data = strings.TrimPrefix(line, "data:")
 		fmt.Println(len(data))
 		if data == "" {
-			data = "\\n"
+			data = "\n"
 		}
 		//log.Println(line, "data:", data)
 	} else if strings.HasPrefix(line, "meta:") {
