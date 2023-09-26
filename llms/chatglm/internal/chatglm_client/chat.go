@@ -190,7 +190,7 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 		//log.Println(line, "id:", id)
 	} else if strings.HasPrefix(line, "data:") {
 		data = strings.TrimPrefix(line, "data:")
-		fmt.Println(len(data))
+		//fmt.Println(len(data))
 		if data == "" {
 			data = "\n"
 		}
