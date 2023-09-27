@@ -250,8 +250,13 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 		//content = (streamResponse.Data.Output.Choices[0].Message.Content)[preLen:]
 
 		if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonNull {
-			content = string(conRune[preLen : conRuneLen-3])
-			preLen = conRuneLen - 3
+			if conRuneLen-2 > preLen {
+				content = string(conRune[preLen : conRuneLen-2])
+				preLen = conRuneLen - 2
+			} else {
+				continue
+			}
+
 		} else if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonStop || streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonLength {
 			content = string(conRune[preLen:])
 			preLen = conRuneLen
