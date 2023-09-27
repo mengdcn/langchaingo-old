@@ -200,6 +200,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 		unitMsg := StreamedChatResponsePayload{}
 		for scanner.Scan() {
 			line := scanner.Text()
+			fmt.Println(line)
 			//fmt.Println("line====aa")
 			//fmt.Println(line)
 			//fmt.Println("line====bb")
@@ -237,7 +238,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 
 	pre := ""
 	for streamResponse := range responseChan {
-		fmt.Println(streamResponse.Data)
+		//fmt.Println(streamResponse.Data)
 		if len(streamResponse.Data.Output.Choices) == 0 {
 			continue
 		}
@@ -246,6 +247,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 			content = switchToAdd(streamResponse.Data.Output.Choices[0].Message.Content, pre)
 			pre = streamResponse.Data.Output.Choices[0].Message.Content
 		} else if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonStop || streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonLength {
+			content = switchToAdd(streamResponse.Data.Output.Choices[0].Message.Content, pre)
 			response.Usage = streamResponse.Data.Usage
 			pre = streamResponse.Data.Output.Choices[0].Message.Content
 		}

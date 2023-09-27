@@ -69,6 +69,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 			Temperature:   opts.Temperature,
 			TopP:          opts.TopP,
 			TopK:          opts.TopK,
+			EnableSearch:  o.client.EnableSearch,
 		}
 		result, err := o.client.CreateChat(ctx, req)
 		if err != nil {
