@@ -244,14 +244,18 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 		if len(streamResponse.Data.Output.Choices) == 0 {
 			continue
 		}
-		//fmt.Println("pre=", pre)
+		conRune := []rune(streamResponse.Data.Output.Choices[0].Message.Content)
+		conRuneLen := len(conRune)
+
+		//content = (streamResponse.Data.Output.Choices[0].Message.Content)[preLen:]
+
 		if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonNull {
-			content = (streamResponse.Data.Output.Choices[0].Message.Content)[preLen:]
-			preLen = len(streamResponse.Data.Output.Choices[0].Message.Content)
+			content = string(conRune[preLen : conRuneLen-3])
+			preLen = conRuneLen - 3
 		} else if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonStop || streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonLength {
-			content = (streamResponse.Data.Output.Choices[0].Message.Content)[preLen:]
+			content = string(conRune[preLen:])
+			preLen = conRuneLen
 			response.Usage = streamResponse.Data.Usage
-			preLen = len(streamResponse.Data.Output.Choices[0].Message.Content)
 		}
 
 		//fmt.Println(content)

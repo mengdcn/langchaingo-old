@@ -39,12 +39,12 @@ func main() {
 		log.Fatal(err)
 	}
 	messages := []schema.ChatMessage{
-		schema.SystemChatMessage{
-			//Content: "你是一个AI助手，请用可爱的语气回复",
-			Content: "你是一个营销策划专家，为用户提供营销策划相关的指导和建议",
-		},
+		//schema.SystemChatMessage{
+		//	//Content: "你是一个AI助手，请用可爱的语气回复",
+		//	Content: "你是一个营销策划专家，为用户提供营销策划相关的指导和建议",
+		//},
 		// 帮我制定一下大一的学习计划
-		schema.HumanChatMessage{Content: "铅笔营销，列出实施方案"},
+		schema.HumanChatMessage{Content: "西红柿炒鸡蛋的做法"},
 	}
 	completion, err := llmChat.Call(ctx, messages,
 		llms.WithTemperature(0.8),
