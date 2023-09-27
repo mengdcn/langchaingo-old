@@ -200,6 +200,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 		unitMsg := StreamedChatResponsePayload{}
 		for scanner.Scan() {
 			line := scanner.Text()
+			//log.Println(line)
 			//fmt.Println(line)
 			//fmt.Println("line====aa")
 			//fmt.Println(line)
@@ -236,21 +237,21 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 		},
 	}
 
-	pre := ""
+	preLen := 0
 	for streamResponse := range responseChan {
 		var content string
 		//fmt.Println(streamResponse.Data)
 		if len(streamResponse.Data.Output.Choices) == 0 {
 			continue
 		}
-
+		//fmt.Println("pre=", pre)
 		if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonNull {
-			content = switchToAdd(streamResponse.Data.Output.Choices[0].Message.Content, pre)
-			pre = streamResponse.Data.Output.Choices[0].Message.Content
+			content = (streamResponse.Data.Output.Choices[0].Message.Content)[preLen:]
+			preLen = len(streamResponse.Data.Output.Choices[0].Message.Content)
 		} else if streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonStop || streamResponse.Data.Output.Choices[0].FinishReason == FinishReasonLength {
-			content = switchToAdd(streamResponse.Data.Output.Choices[0].Message.Content, pre)
+			content = (streamResponse.Data.Output.Choices[0].Message.Content)[preLen:]
 			response.Usage = streamResponse.Data.Usage
-			pre = streamResponse.Data.Output.Choices[0].Message.Content
+			preLen = len(streamResponse.Data.Output.Choices[0].Message.Content)
 		}
 
 		//fmt.Println(content)
@@ -303,9 +304,4 @@ func decodeStreamData(line string, resp *StreamedChatResponsePayload) error {
 	}
 
 	return nil
-}
-
-// 转为增量输出
-func switchToAdd(now, pre string) string {
-	return strings.TrimPrefix(now, pre)
 }
