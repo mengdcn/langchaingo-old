@@ -11,8 +11,28 @@ import (
 	"github.com/tmc/langchaingo/llms/ernie"
 )
 
+type mcache struct {
+}
+
+func (m mcache) Set(key string, value string) error {
+	return nil
+}
+func (m mcache) Get(key string) (string, error) {
+	return "", nil
+}
+func (m mcache) Expire(key string, seconds int) error {
+	return nil
+}
+
 func main() {
-	llm, err := ernie.NewChatWithCallback(callbacks.LogHandler{}, ernie.WithModelName(ernie.ModelNameERNIEBot))
+
+	//rdb := redis.NewClient(&redis.Options{
+	//	Addr:     "192.168.5.89:6379",
+	//	Password: "",
+	//	DB:       0,
+	//})
+	cache := mcache{}
+	llm, err := ernie.NewChatWithCallback(callbacks.LogHandler{}, ernie.WithModelName(ernie.ModelNameERNIEBot), ernie.WithCache(cache))
 	// note:
 	// You would include ernie.WithAKSK(apiKey,secretKey) to use specific auth info.
 	// You would include ernie.WithModelName(ernie.ModelNameERNIEBot) to use the ERNIE-Bot model.
