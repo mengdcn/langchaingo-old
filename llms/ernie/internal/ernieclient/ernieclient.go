@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 var (
@@ -26,6 +25,14 @@ type Client struct {
 	secretKey   string
 	accessToken string
 	httpClient  Doer
+	cache       Cache
+}
+
+// Cache 公共缓存
+type Cache interface {
+	Set(key string, value string) error
+	Get(key string) (string, error)
+	Expire(key string, seconds int) error
 }
 
 // ModelPath ERNIE API URL path suffix distinguish models.
@@ -131,6 +138,12 @@ func WithAccessToken(accessToken string) Option {
 		return nil
 	}
 }
+func WithCache(cache Cache) Option {
+	return func(c *Client) error {
+		c.cache = cache
+		return nil
+	}
+}
 
 // New returns a new ERNIE client.
 func New(opts ...Option) (*Client, error) {
@@ -158,22 +171,37 @@ func New(opts ...Option) (*Client, error) {
 }
 
 func autoRefresh(c *Client) error {
+	key := "langchain:ernieclient:" + c.apiKey
+	var token string
+	var err error
+	if c.cache != nil {
+		token, _ = c.cache.Get(key)
+		fmt.Println("get token from cache:", token)
+	}
+	if token != "" {
+		c.accessToken = token
+		return nil
+	}
+
 	authResp, err := c.getAccessToken(context.Background())
 	if err != nil {
 		return err
 	}
 	c.accessToken = authResp.AccessToken
-	go func() { // 30 day expiration, auto refresh access token per 10 days
-		for {
-			authResp, err := c.getAccessToken(context.Background())
-			if err != nil {
-				time.Sleep(tryPeriod * time.Minute) // try
-				continue
-			}
-			c.accessToken = authResp.AccessToken
-			time.Sleep(10 * 24 * time.Hour)
-		}
-	}()
+	if c.cache != nil {
+		c.cache.Set(key, c.accessToken)
+	}
+	//go func() { // 30 day expiration, auto refresh access token per 10 days
+	//	for {
+	//		authResp, err := c.getAccessToken(context.Background())
+	//		if err != nil {
+	//			time.Sleep(tryPeriod * time.Minute) // try
+	//			continue
+	//		}
+	//		c.accessToken = authResp.AccessToken
+	//		time.Sleep(10 * 24 * time.Hour)
+	//	}
+	//}()
 	return nil
 }
 

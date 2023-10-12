@@ -61,7 +61,9 @@ doc: https://cloud.baidu.com/doc/WENXINWORKSHOP/s/flfmc9do2`, ernieclient.ErrNot
 
 	return ernieclient.New(
 		ernieclient.WithAccessToken(options.accessToken),
-		ernieclient.WithAKSK(options.apiKey, options.secretKey))
+		ernieclient.WithAKSK(options.apiKey, options.secretKey),
+		ernieclient.WithCache(options.cache))
+
 }
 
 // GeneratePrompt implements llms.LanguageModel.

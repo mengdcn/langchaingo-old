@@ -1,5 +1,7 @@
 package ernie
 
+import "github.com/tmc/langchaingo/llms/ernie/internal/ernieclient"
+
 const (
 	ernieAPIKey    = "ERNIE_API_KEY"    //nolint:gosec
 	ernieSecretKey = "ERNIE_SECRET_KEY" //nolint:gosec
@@ -21,6 +23,7 @@ type options struct {
 	secretKey   string
 	accessToken string
 	modelName   ModelName
+	cache       ernieclient.Cache
 }
 
 type Option func(*options)
@@ -52,5 +55,11 @@ func WithAccessToken(accessToken string) Option {
 func WithModelName(modelName ModelName) Option {
 	return func(opts *options) {
 		opts.modelName = modelName
+	}
+}
+
+func WithCache(cache ernieclient.Cache) Option {
+	return func(opts *options) {
+		opts.cache = cache
 	}
 }
