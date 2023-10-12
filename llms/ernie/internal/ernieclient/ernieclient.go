@@ -190,6 +190,7 @@ func autoRefresh(c *Client) error {
 	c.accessToken = authResp.AccessToken
 	if c.cache != nil {
 		c.cache.Set(key, c.accessToken)
+		c.cache.Expire(key, authResp.ExpiresIn-3600)
 	}
 	//go func() { // 30 day expiration, auto refresh access token per 10 days
 	//	for {
