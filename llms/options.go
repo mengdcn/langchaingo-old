@@ -1,6 +1,9 @@
 package llms
 
-import "context"
+import (
+	"context"
+	"github.com/tmc/langchaingo/schema"
+)
 
 // CallOption is a function that configures a CallOptions.
 type CallOption func(*CallOptions)
@@ -54,6 +57,10 @@ type FunctionDefinition struct {
 	Description string `json:"description"`
 	// Parameters is a list of parameters for the function.
 	Parameters any `json:"parameters"`
+	// 文心4.0 新增
+	Responses any `json:"responses,omitempty"`
+	// 文心4.0 新增
+	Examples []*schema.ChatMessage `json:"examples,omitempty"`
 }
 
 // FunctionCallBehavior is the behavior to use when calling functions.

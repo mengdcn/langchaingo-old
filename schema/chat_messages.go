@@ -97,6 +97,8 @@ type FunctionChatMessage struct {
 type FunctionCall struct {
 	Name      string `json:"name"`
 	Arguments string `json:"arguments"`
+	// 文心4.0新增
+	Thoughts string `json:"thoughts,omitempty"`
 }
 
 func (m FunctionChatMessage) GetType() ChatMessageType { return ChatMessageTypeFunction }

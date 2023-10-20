@@ -1,6 +1,8 @@
 package ernie
 
-import "github.com/tmc/langchaingo/llms/ernie/internal/ernieclient"
+import (
+	"github.com/tmc/langchaingo/llms/ernie/internal/ernieclient"
+)
 
 const (
 	ernieAPIKey    = "ERNIE_API_KEY"    //nolint:gosec
@@ -10,6 +12,7 @@ const (
 type ModelName string
 
 const (
+	ModelNameERNIEBot4      = "ERNIE-Bot-4"
 	ModelNameERNIEBot       = "ERNIE-Bot"
 	ModelNameERNIEBotTurbo  = "ERNIE-Bot-turbo"
 	ModelNameBloomz7B       = "BLOOMZ-7B"

@@ -13,6 +13,7 @@ type Chat struct {
 	CallbacksHandler callbacks.Handler
 	client           *ernieclient.Client
 	usage            []ernieclient.Usage
+	model            ModelName
 }
 
 var (
@@ -23,17 +24,29 @@ var (
 // NewChat returns a new OpenAI chat LLM.
 func NewChat(opts ...Option) (*Chat, error) {
 	c, err := newClient(opts...)
+	options := &options{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
 	return &Chat{
 		client: c,
+		model:  options.modelName,
 	}, err
 }
 
 // NewChat returns a new OpenAI chat LLM.
 func NewChatWithCallback(handler callbacks.Handler, opts ...Option) (*Chat, error) {
 	c, err := newClient(opts...)
+	options := &options{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
 	return &Chat{
 		client:           c,
 		CallbacksHandler: handler,
+		model:            options.modelName,
 	}, err
 }
 
@@ -60,13 +73,19 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 		opt(&opts)
 	}
 
+	fmt.Println(opts.Model)
+	fmt.Println(o.getModelPath(opts))
 	generations := make([]*llms.Generation, 0, len(messageSets))
 	for _, messageSet := range messageSets {
+		msgs, system := messagesToClientMessages(messageSet)
+		// 如果存在function， 需要function转换
 		result, err := o.client.CreateCompletion(ctx, o.getModelPath(opts), &ernieclient.CompletionRequest{
-			Messages:      messagesToClientMessages(messageSet),
+			Messages:      msgs,
 			Temperature:   opts.Temperature,
 			TopP:          opts.TopP,
 			PenaltyScore:  opts.RepetitionPenalty,
+			System:        system,
+			Functions:     opts.Functions,
 			StreamingFunc: opts.StreamingFunc,
 			Stream:        opts.StreamingFunc != nil,
 		})
@@ -75,7 +94,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 		}
 		generations = append(generations, &llms.Generation{
 			Text:    result.Result,
-			Message: &schema.AIChatMessage{Content: result.Result},
+			Message: &schema.AIChatMessage{Content: result.Result, FunctionCall: &result.FunctionCall},
 			GenerationInfo: map[string]any{"PromptTokens": result.Usage.PromptTokens,
 				"CompletionTokens": result.Usage.CompletionTokens,
 				"TotalTokens":      result.Usage.TotalTokens},
@@ -139,35 +158,58 @@ func getPromptsFromMessageSets(messageSets [][]schema.ChatMessage) []string {
 	return prompts
 }
 
-func messagesToClientMessages(messages []schema.ChatMessage) []*ernieclient.Message {
-	msgs := make([]*ernieclient.Message, len(messages))
-	for i, m := range messages {
-		msg := &ernieclient.Message{
-			Content: m.GetContent(),
-		}
+func messagesToClientMessages(messages []schema.ChatMessage) ([]*ernieclient.Message, string) {
+	msgs := make([]*ernieclient.Message, 0, 4)
+	var system string
+
+	for _, m := range messages {
+		msg := &ernieclient.Message{}
 		typ := m.GetType()
 		switch typ {
+		case schema.ChatMessageTypeSystem:
+			msg.Role = "system"
 		case schema.ChatMessageTypeAI:
 			msg.Role = "assistant"
 		case schema.ChatMessageTypeHuman:
 			msg.Role = "user"
 		case schema.ChatMessageTypeGeneric:
 			msg.Role = "user"
+		case schema.ChatMessageTypeFunction:
+			msg.Role = "function"
 		}
-		msgs[i] = msg
+		msg.Content = m.GetContent()
+		if n, ok := m.(schema.Named); ok {
+			msg.Name = n.GetName()
+		}
+		// 断言 AIChatMessage
+		if mm, ok := m.(schema.AIChatMessage); ok {
+			msg.FunctionCall = mm.FunctionCall
+		}
+		if msg.Role == "system" {
+
+			system = msg.Content
+			continue
+		}
+		msgs = append(msgs, msg)
 	}
 
-	return msgs
+	fmt.Println(msgs)
+	return msgs, system
 }
 
 func (o *Chat) getModelPath(opts llms.CallOptions) ernieclient.ModelPath {
-	model := ernieclient.DefaultCompletionModelPath
-
+	var model ModelName
+	model = ModelName(opts.Model)
 	if model == "" {
-		model = opts.Model
+		model = o.model
+	}
+	if model == "" {
+		model = ernieclient.DefaultCompletionModelPath
 	}
 
 	switch model {
+	case ModelNameERNIEBot4:
+		return "completions_pro"
 	case ModelNameERNIEBot:
 		return "completions"
 	case ModelNameERNIEBotTurbo:

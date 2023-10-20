@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"github.com/tmc/langchaingo/callbacks"
-	"github.com/tmc/langchaingo/schema"
-	"log"
-
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ernie"
+	"github.com/tmc/langchaingo/schema"
+	"log"
+	"os"
 )
 
 type mcache struct {
@@ -31,8 +31,12 @@ func main() {
 	//	Password: "",
 	//	DB:       0,
 	//})
+
 	cache := mcache{}
-	llm, err := ernie.NewChatWithCallback(callbacks.LogHandler{}, ernie.WithModelName(ernie.ModelNameERNIEBot), ernie.WithCache(cache))
+	k := os.Getenv("ERNIE_API_KEY")
+	v := os.Getenv("ERNIE_SECRET_KEY")
+
+	llm, err := ernie.NewChatWithCallback(callbacks.LogHandler{}, ernie.WithAKSK(k, v), ernie.WithModelName(ernie.ModelNameERNIEBot4), ernie.WithCache(cache))
 	// note:
 	// You would include ernie.WithAKSK(apiKey,secretKey) to use specific auth info.
 	// You would include ernie.WithModelName(ernie.ModelNameERNIEBot) to use the ERNIE-Bot model.

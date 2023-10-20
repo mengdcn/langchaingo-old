@@ -19,39 +19,39 @@ func main() {
 		return
 	}
 	ctx := context.Background()
-	//r := &baiduai.TxtRequest{
-	//	Prompt:   "海盗船，怪物攻击，暴风雨，夜晚，完美无瑕战斗，日系动漫风，双重曝光，超宽视角",
-	//	Version:  "v2",
-	//	Width:    1024,
-	//	Height:   1024,
-	//	ImageNum: 2,
-	//}
-	//resp, err := client.Txt2imgv2(ctx, r)
-	//if err != nil {
-	//	fmt.Println("error===", err)
-	//	return
-	//}
-	//fmt.Println(resp)
-	//taskId := resp.Data.TaskId
-	//fmt.Println("taskId:", taskId)
-	//
-	//result, err := client.GetImgv2(ctx, taskId)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//b, err := json.Marshal(result)
-	//
-	//fmt.Printf("%#v", string(b))
+	r := &baiduai.TxtRequest{
+		Prompt:   "海盗船，怪物攻击，暴风雨，夜晚，完美无瑕战斗，日系动漫风，双重曝光，超宽视角",
+		Version:  "v2",
+		Width:    1024,
+		Height:   1024,
+		ImageNum: 2,
+	}
+	resp, err := client.Txt2imgv2(ctx, r)
+	if err != nil {
+		fmt.Println("error===", err)
+		return
+	}
+	fmt.Println(resp)
+	taskId := resp.Data.TaskId
+	fmt.Println("taskId:", taskId)
 
-	//r := &baiduai.Txtv1Request{
+	result, err := client.GetImgv2(ctx, taskId)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	b, err := json.Marshal(result)
+
+	fmt.Printf("%#v", string(b))
+
+	//r1 := &baiduai.Txtv1Request{
 	//	Text:       "海盗船，怪物攻击，暴风雨，夜晚，完美无瑕战斗，日系动漫风，双重曝光，超宽视角",
 	//	Style:      "水彩画",
 	//	Resolution: "1024*1024",
 	//	Num:        2,
 	//}
 	//
-	//resp, err := client.Txt2img(ctx, r)
+	//resp, err := client.Txt2img(ctx, r1)
 	//if err != nil {
 	//	fmt.Println("error === ", err)
 	//	return
@@ -60,8 +60,9 @@ func main() {
 	//fmt.Printf(string(bb))
 	//taskIdInt := resp.Data.TaskId
 	//taskId := strconv.FormatInt(taskIdInt, 10)
+
 	////// 17722501
-	taskId := "17722616"
+	//taskId := "17722616"
 	fmt.Println("task id:", taskId)
 
 	if taskId == "" {

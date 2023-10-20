@@ -35,8 +35,15 @@ var (
 func New(opts ...Option) (*LLM, error) {
 	c, err := newClient(opts...)
 
+	options := &options{}
+
+	for _, opt := range opts {
+		opt(options)
+	}
+
 	return &LLM{
 		client: c,
+		model:  options.modelName,
 	}, err
 }
 
@@ -63,7 +70,6 @@ doc: https://cloud.baidu.com/doc/WENXINWORKSHOP/s/flfmc9do2`, ernieclient.ErrNot
 		ernieclient.WithAccessToken(options.accessToken),
 		ernieclient.WithAKSK(options.apiKey, options.secretKey),
 		ernieclient.WithCache(options.cache))
-
 }
 
 // GeneratePrompt implements llms.LanguageModel.
@@ -168,13 +174,18 @@ func (l *LLM) CreateEmbedding(ctx context.Context, texts []string) ([][]float64,
 }
 
 func (l *LLM) getModelPath(opts llms.CallOptions) ernieclient.ModelPath {
-	model := l.model
-
+	var model ModelName
+	model = ModelName(opts.Model)
 	if model == "" {
-		model = ModelName(opts.Model)
+		model = l.model
+	}
+	if model == "" {
+		model = ernieclient.DefaultCompletionModelPath
 	}
 
 	switch model {
+	case ModelNameERNIEBot4:
+		return "completions_pro"
 	case ModelNameERNIEBot:
 		return "completions"
 	case ModelNameERNIEBotTurbo:

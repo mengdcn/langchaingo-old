@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/schema"
 	"log"
 	"net/http"
 	"strings"
@@ -53,8 +55,10 @@ type Doer interface {
 }
 
 type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role         string               `json:"role,omitempty"`
+	Content      string               `json:"content,omitempty"`
+	Name         string               `json:"name,omitempty"`
+	FunctionCall *schema.FunctionCall `json:"function_call,omitempty"`
 }
 
 // CompletionRequest is a request to create a completion.
@@ -64,30 +68,45 @@ type CompletionRequest struct {
 	TopP          float64                                       `json:"top_p,omitempty"`
 	PenaltyScore  float64                                       `json:"penalty_score,omitempty"`
 	Stream        bool                                          `json:"stream,omitempty"`
+	System        string                                        `json:"system,omitempty"`
 	UserID        string                                        `json:"user_id,omitempty"`
+	Functions     []llms.FunctionDefinition                     `json:"functions,omitempty"`
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
 }
 
+type Example Message
+
 // Completion is a completion.
 type Completion struct {
-	ID               string `json:"id"`
-	Object           string `json:"object"`
-	Created          int    `json:"created"`
-	SentenceID       int    `json:"sentence_id"`
-	IsEnd            bool   `json:"is_end"`
-	IsTruncated      bool   `json:"is_truncated"`
-	Result           string `json:"result"`
-	NeedClearHistory bool   `json:"need_clear_history"`
-	Usage            Usage  `json:"usage"`
+	ID               string              `json:"id"`
+	Object           string              `json:"object"`
+	Created          int                 `json:"created"`
+	SentenceID       int                 `json:"sentence_id"`
+	IsEnd            bool                `json:"is_end"`
+	IsTruncated      bool                `json:"is_truncated"`
+	Result           string              `json:"result"`
+	NeedClearHistory bool                `json:"need_clear_history"`
+	BanRound         int                 `json:"ban_round,omitempty"`
+	Usage            Usage               `json:"usage"`
+	FunctionCall     schema.FunctionCall `json:"function_call,omitempty"`
 	// for error
 	ErrorCode int    `json:"error_code,omitempty"`
 	ErrorMsg  string `json:"error_msg,omitempty"`
 }
 
 type Usage struct {
-	PromptTokens     int `json:"prompt_tokens,omitempty"`
-	CompletionTokens int `json:"completion_tokens,omitempty"`
-	TotalTokens      int `json:"total_tokens,omitempty"`
+	PromptTokens     int           `json:"prompt_tokens,omitempty"`
+	CompletionTokens int           `json:"completion_tokens,omitempty"`
+	TotalTokens      int           `json:"total_tokens,omitempty"`
+	PluginUsage      []PluginUsage `json:"plugin_usage,omitempty"`
+}
+
+type PluginUsage struct {
+	Name           string `json:"name"`            //plugin名称，chatFile：chatfile插件消耗的tokens
+	ParseTokens    int    `json:"parse_tokens"`    //解析文档tokens
+	AbstractTokens int    `json:"abstract_tokens"` //摘要文档tokens
+	SearchTokens   int    `json:"search_tokens"`   // 检索文档tokens
+	TotalTokens    int    `json:"total_tokens"`    // 总tokens
 }
 
 type EmbeddingResponse struct {
@@ -218,6 +237,8 @@ func (c *Client) CreateCompletion(ctx context.Context, modelPath ModelPath, r *C
 	if e != nil {
 		return nil, e
 	}
+	fmt.Println(url)
+	fmt.Println(string(body))
 	req, e := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if e != nil {
 		return nil, e
@@ -306,14 +327,18 @@ func parseStreamingCompletionResponse(ctx context.Context, resp *http.Response, 
 		dataPrefix := "data: "
 		for scanner.Scan() {
 			line := scanner.Text()
-			fmt.Printf("%s", line)
+			fmt.Printf("%s\n", line)
 			if line == "" {
 				continue
 			}
+
+			var data string
 			if !strings.HasPrefix(line, dataPrefix) {
-				continue
+				data = line
+			} else {
+				// 错误  {"error_code":6,"error_msg":"No permission to access data"}
+				data = strings.TrimPrefix(line, dataPrefix)
 			}
-			data := strings.TrimPrefix(line, dataPrefix)
 			streamPayload := &Completion{}
 			err := json.NewDecoder(bytes.NewReader([]byte(data))).Decode(&streamPayload)
 			if err != nil {
@@ -328,8 +353,13 @@ func parseStreamingCompletionResponse(ctx context.Context, resp *http.Response, 
 	// Parse response
 	response := Completion{}
 
-	var lastResponse *Completion
+	lastResponse := &Completion{}
 	for streamResponse := range responseChan {
+		if streamResponse.ErrorCode != 0 || streamResponse.FunctionCall.Name != "" {
+			lastResponse = streamResponse
+			break
+		}
+
 		response.Result += streamResponse.Result
 		if req.StreamingFunc != nil {
 			err := req.StreamingFunc(ctx, []byte(streamResponse.Result))
@@ -338,6 +368,12 @@ func parseStreamingCompletionResponse(ctx context.Context, resp *http.Response, 
 			}
 		}
 		lastResponse = streamResponse
+	}
+	if lastResponse.ErrorCode != 0 {
+		return nil, errors.New("errcode:" + lastResponse.ErrorMsg + ",errmsg：" + lastResponse.ErrorMsg)
+	}
+	if lastResponse.FunctionCall.Name != "" {
+		return lastResponse, nil
 	}
 	// update
 	lastResponse.Result = response.Result

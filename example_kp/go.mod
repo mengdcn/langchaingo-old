@@ -2,23 +2,22 @@ module example_kp
 
 go 1.20
 
-require github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08
+require (
+	github.com/gorilla/websocket v1.5.0
+	github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08
+)
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Masterminds/sprig/v3 v3.2.3 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/pkoukk/tiktoken-go v0.1.2 // indirect
-	github.com/redis/go-redis/v9 v9.2.1 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	go.starlark.net v0.0.0-20230302034142-4b1e35fe2254 // indirect
@@ -29,4 +28,4 @@ require (
 
 //replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => github.com/comqositi/langchaingo v0.1.2
 
-replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => /home/lucas/bgy/comqositi/langchaingo
+replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => E:\bgy\comqositi\langchaingo
