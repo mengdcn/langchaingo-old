@@ -2,6 +2,7 @@ package ernie
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/llms/ernie"
@@ -70,6 +71,9 @@ func (e *Ernie) EmbedDocuments(ctx context.Context, texts []string) ([][]float64
 		e.batchSize,
 	)
 
+	fmt.Println("文本分解")
+	fmt.Println(batchedTexts)
+
 	emb := make([][]float64, 0, len(texts))
 	for _, texts := range batchedTexts {
 		curTextEmbeddings, err := e.embed(ctx, texts)
@@ -91,6 +95,27 @@ func (e *Ernie) EmbedDocuments(ctx context.Context, texts []string) ([][]float64
 	}
 
 	return emb, nil
+}
+
+// EmbedCombine 合并文档
+func (e *Ernie) EmbedCombine(ctx context.Context, texts []string) ([]float64, error) {
+
+	curTextEmbeddings, err := e.embed(ctx, texts)
+	if err != nil {
+		return nil, err
+	}
+
+	textLengths := make([]int, 0, len(texts))
+	for _, text := range texts {
+		textLengths = append(textLengths, len(text))
+	}
+
+	combined, err := embeddings.CombineVectors(curTextEmbeddings, textLengths)
+	if err != nil {
+		return nil, err
+	}
+
+	return combined, nil
 }
 
 // EmbedQuery use ernie Embedding-V1.
