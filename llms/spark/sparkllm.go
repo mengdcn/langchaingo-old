@@ -63,13 +63,15 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 			Temperature:   opts.Temperature,
 			TopK:          opts.TopK,
 			StreamingFunc: opts.StreamingFunc,
+			Functions:     opts.Functions,
 		})
 		if err != nil {
 			return nil, err
 		}
 		generations = append(generations, &llms.Generation{
 			Text: result.Text,
-			GenerationInfo: map[string]any{"PromptTokens": result.Usage.Text.PromptTokens,
+			GenerationInfo: map[string]any{
+				"PromptTokens":     result.Usage.Text.PromptTokens,
 				"CompletionTokens": result.Usage.Text.CompletionTokens,
 				"TotalTokens":      result.Usage.Text.TotalTokens},
 		})

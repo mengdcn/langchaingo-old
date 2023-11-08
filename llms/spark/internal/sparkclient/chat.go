@@ -9,7 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"io/ioutil"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/schema"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -32,6 +34,7 @@ type ChatRequestUser struct {
 	ChatId        string                                        `json:"chat_id,o,omitempty"`
 	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
 	Messages      []*Text                                       `json:"text"`
+	Functions     []llms.FunctionDefinition                     `json:"functions,omitempty"`
 }
 
 type ChatRequest struct {
@@ -55,7 +58,11 @@ type ParameterChat struct {
 	ChatId      string  `json:"chat_id,omitempty"`
 }
 type Payload struct {
-	Message PayloadMessage `json:"message"`
+	Message   PayloadMessage `json:"message"`
+	Functions Functions      `json:"functions,omitempty"`
+}
+type Functions struct {
+	Text []llms.FunctionDefinition `json:"text,omitempty"`
 }
 type PayloadMessage struct {
 	Text []*Text `json:"text"`
@@ -85,9 +92,10 @@ type Choices struct {
 	Text   []*ChoicesText `json:"text"`
 }
 type ChoicesText struct {
-	Content string `json:"content"`
-	Role    string `json:"role"`
-	Index   int    `json:"index"`
+	Content      string               `json:"content"`
+	Role         string               `json:"role"`
+	Index        int                  `json:"index"`
+	FunctionCall *schema.FunctionCall `json:"function_call,omitempty"`
 }
 type Usage struct {
 	Text struct {
@@ -99,8 +107,9 @@ type Usage struct {
 }
 
 type ChatResponse struct {
-	Text  string `json:"text"`
-	Usage Usage  `json:"usage"`
+	Text         string               `json:"text"`
+	FunctionCall *schema.FunctionCall `json:"function_call,omitempty"`
+	Usage        Usage                `json:"usage"`
 }
 
 // getParam 设置参数
@@ -115,6 +124,9 @@ func (c *Client) getParam(p *ChatRequestUser) *ChatRequest {
 	} else if c.model == modelName20 {
 		c.baseUrl = defaultBaseUrl2
 		domain = "generalv2"
+	} else if c.model == modelName30 {
+		c.baseUrl = defaultBaseUrl30
+		domain = "generalv3"
 	}
 	resp := &ChatRequest{
 		Header: Header{
@@ -128,6 +140,9 @@ func (c *Client) getParam(p *ChatRequestUser) *ChatRequest {
 		Payload: Payload{
 			Message: PayloadMessage{
 				Text: p.Messages,
+			},
+			Functions: Functions{
+				Text: p.Functions,
 			},
 		},
 		StreamingFunc: p.StreamingFunc,
@@ -156,14 +171,21 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 		HandshakeTimeout: 5 * time.Second,
 	}
 	apiUrl := assembleAuthUrl(c.baseUrl, c.apiKey, c.appSecret)
+	fmt.Println(apiUrl)
 	//握手并建立websocket 连接
 	conn, resp, err := d.Dial(apiUrl, nil)
 	if err != nil {
+		fmt.Println("connection error")
 		return nil, errors.New(readResp(resp) + err.Error())
 	} else if resp.StatusCode != 101 {
+		fmt.Println("connection 101")
 		return nil, errors.New(readResp(resp) + err.Error())
 	}
+
 	payload := c.getParam(payloadUser)
+	b, _ := json.Marshal(payload)
+	fmt.Println(string(b))
+
 	go func() {
 		conn.WriteJSON(payload)
 	}()
@@ -176,6 +198,7 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 			return nil, err
 		}
 
+		fmt.Println(string(msg))
 		var data StreamedChatResponsePayload
 		err1 := json.Unmarshal(msg, &data)
 		if err1 != nil {
@@ -193,6 +216,7 @@ func (c *Client) createChat(ctx context.Context, payloadUser *ChatRequestUser) (
 		if len(data.Payload.Choices.Text) > 0 {
 			// 全部文本组装
 			response.Text += data.Payload.Choices.Text[0].Content
+			response.FunctionCall = data.Payload.Choices.Text[0].FunctionCall
 			chunk := []byte(data.Payload.Choices.Text[0].Content)
 			if payload.StreamingFunc != nil {
 				payload.StreamingFunc(ctx, chunk)
@@ -254,7 +278,7 @@ func readResp(resp *http.Response) string {
 	if resp == nil {
 		return ""
 	}
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}

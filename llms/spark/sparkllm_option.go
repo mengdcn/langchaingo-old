@@ -1,6 +1,8 @@
 package spark
 
-import "github.com/tmc/langchaingo/llms/spark/internal/sparkclient"
+import (
+	"github.com/tmc/langchaingo/llms/spark/internal/sparkclient"
+)
 
 const (
 	idEnvVarName     = "SPARK_APP_ID"

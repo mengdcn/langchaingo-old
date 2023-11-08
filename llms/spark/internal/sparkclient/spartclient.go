@@ -11,11 +11,14 @@ const (
 	defaultBaseUrl1 = "wss://spark-api.xf-yun.com/v1.1/chat"
 	// 星火大模型V2请求地址，对应的domain参数为generalv2
 	defaultBaseUrl2 = "wss://spark-api.xf-yun.com/v2.1/chat"
+	// 星火大模型V3请求地址，对应的domain参数为generalv3
+	defaultBaseUrl30 = "wss://spark-api.xf-yun.com/v3.1/chat"
 	// embedding
 	defaultBaseUrl3 = "http://knowledge-retrieval.cn-huabei-1.xf-yun.com/v1/aiui/embedding/query"
 
 	modelName15 = "spark1.5"
 	modelName20 = "spark2.0"
+	modelName30 = "spark3.0"
 )
 
 var ErrEmptyResponse = errors.New("empty response")
@@ -60,6 +63,8 @@ func New(appId, appSecret, apiKey, model, baseUrl, embeddingModel string, httpCl
 		c.baseUrl = defaultBaseUrl1
 	case modelName20:
 		c.baseUrl = defaultBaseUrl2
+	case modelName30:
+		c.baseUrl = defaultBaseUrl30
 	case defaultEmbeddingModel:
 		c.baseUrl = defaultBaseUrl3
 	}
@@ -97,8 +102,8 @@ func (c *Client) CreateChat(ctx context.Context, r *ChatRequestUser) (*ChatRespo
 	if err != nil {
 		return nil, err
 	}
-	if len(resp.Text) == 0 {
-		return nil, ErrEmptyResponse
-	}
+	//if len(resp.Text) == 0 {
+	//	return nil, ErrEmptyResponse
+	//}
 	return resp, nil
 }

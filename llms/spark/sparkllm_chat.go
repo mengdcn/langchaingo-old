@@ -57,20 +57,22 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 			Temperature:   opts.Temperature,
 			MaxTokens:     opts.MaxTokens,
 			TopK:          opts.TopK,
+			Functions:     opts.Functions,
 		}
 		result, err := o.client.CreateChat(ctx, req)
 		if err != nil {
 			return nil, err
 		}
-		if len(result.Text) == 0 {
-			return nil, ErrEmptyResponse
-		}
+		//if len(result.Text) == 0 {
+		//	return nil, ErrEmptyResponse
+		//}
 		generationInfo := make(map[string]any, reflect.ValueOf(result.Usage.Text).NumField())
 		generationInfo["CompletionTokens"] = result.Usage.Text.CompletionTokens
 		generationInfo["PromptTokens"] = result.Usage.Text.PromptTokens
 		generationInfo["TotalTokens"] = result.Usage.Text.TotalTokens
 		msg := &schema.AIChatMessage{
-			Content: result.Text,
+			Content:      result.Text,
+			FunctionCall: result.FunctionCall,
 		}
 		generations = append(generations, &llms.Generation{
 			Message:        msg,
