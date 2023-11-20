@@ -12,13 +12,14 @@ import (
 )
 
 func main() {
-	llm, err := openai.NewChat(openai.WithModel("gpt-3.5-turbo-0613"))
+	baseUrl := "https://apiagent.kaopuai.com/v1"
+	llm, err := openai.NewChat(openai.WithModel("gpt-4"), openai.WithBaseURL(baseUrl))
 	if err != nil {
 		log.Fatal(err)
 	}
 	ctx := context.Background()
 	completion, err := llm.Call(ctx, []schema.ChatMessage{
-		schema.HumanChatMessage{Content: "What is the weather like in Boston?"},
+		schema.HumanChatMessage{Content: "湖北税局状态?"},
 	}, llms.WithFunctions(functions))
 	if err != nil {
 		log.Fatal(err)
@@ -45,8 +46,8 @@ func getCurrentWeather(location string, unit string) (string, error) {
 
 var functions = []llms.FunctionDefinition{
 	{
-		Name:        "getCurrentWeather",
-		Description: "Get the current weather in a given location",
-		Parameters:  json.RawMessage(`{"type": "object", "properties": {"location": {"type": "string", "description": "The city and state, e.g. San Francisco, CA"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]}}, "required": ["location"]}`),
+		Name:        "get_shuiju_status", // name 必须为英文 ^[a-zA-Z0-9_-]{1,64}$
+		Description: "根据输入的地区，获取各地区税务局的状态",
+		Parameters:  json.RawMessage(`{"type": "object", "properties": {"location": {"type": "string", "description": "地区，税务局的所属地区，例如：北京市、湖北省"}, "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]}}, "required": ["location"]}`),
 	},
 }

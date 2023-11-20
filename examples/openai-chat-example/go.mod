@@ -11,5 +11,5 @@ require (
 )
 
 replace (
-	github.com/tmc/langchaingo v0.0.0-20230829032009-e89bc0bd369f => E:/bgy/comqositi/langchaingo
+	github.com/tmc/langchaingo v0.0.0-20230829032009-e89bc0bd369f => github.com/comqositi/langchaingo v0.2.8
 )
