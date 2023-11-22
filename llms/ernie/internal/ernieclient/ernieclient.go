@@ -12,7 +12,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 var (
@@ -33,8 +32,8 @@ type Client struct {
 
 // Cache 公共缓存
 type Cache interface {
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
-	Get(ctx context.Context, key string) (string, error)
+	Set(key string, value string, second int) error
+	Get(key string) (string, error)
 }
 
 // ModelPath ERNIE API URL path suffix distinguish models.
@@ -194,7 +193,7 @@ func autoRefresh(c *Client) error {
 	var token string
 	var err error
 	if c.cache != nil {
-		token, err = c.cache.Get(context.Background(), key)
+		token, err = c.cache.Get(key)
 		if err != nil {
 			fmt.Println("1 get token from cache:", err.Error())
 		}
@@ -218,7 +217,7 @@ func autoRefresh(c *Client) error {
 	if c.cache != nil {
 		//err = c.cache.Set(context.Background(), key, c.accessToken, time.Duration(authResp.ExpiresIn-1800))
 		// 文心token默认30天， 缓存28天
-		err = c.cache.Set(context.Background(), key, c.accessToken, time.Second*time.Duration(authResp.ExpiresIn-3600*24*2))
+		err = c.cache.Set(key, c.accessToken, authResp.ExpiresIn-3600*24*2)
 		if err != nil {
 			fmt.Println(err.Error())
 		}

@@ -3,42 +3,31 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/redis/go-redis/v9"
+	// "github.com/redis/go-redis/v9"
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ernie"
 	"github.com/tmc/langchaingo/schema"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"log"
 	"os"
 	"time"
 )
 
-type mcache struct {
-	rdb *redis.Client
-}
-
-func (m mcache) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	cmd := m.rdb.Set(ctx, key, value, expiration)
-	if cmd.Err() != nil {
-		return cmd.Err()
-	}
-	return nil
-}
-
-func (m mcache) Get(ctx context.Context, key string) (string, error) {
-	return m.rdb.Get(ctx, key).Result()
-}
-
 func main() {
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "192.168.5.89:6379",
-		Password: "",
-		DB:       0,
-	})
+	conf := redis.RedisConf{
+		Host:        "192.168.5.89:6379",
+		Type:        "node",
+		Pass:        "",
+		Tls:         false,
+		NonBlock:    false,
+		PingTimeout: time.Second,
+	}
+	rdb := redis.MustNewRedis(conf)
 
-	cache := mcache{
-		rdb: rdb,
+	cache := ernie.GozeroRedisCache{
+		Rdb: rdb,
 	}
 	k := os.Getenv("ERNIE_API_KEY")
 	v := os.Getenv("ERNIE_SECRET_KEY")
