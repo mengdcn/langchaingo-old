@@ -1,9 +1,5 @@
 package ernie
 
-import (
-	"github.com/tmc/langchaingo/llms/ernie/internal/ernieclient"
-)
-
 const (
 	ernieAPIKey    = "ERNIE_API_KEY"    //nolint:gosec
 	ernieSecretKey = "ERNIE_SECRET_KEY" //nolint:gosec
@@ -26,10 +22,17 @@ type options struct {
 	secretKey   string
 	accessToken string
 	modelName   ModelName
-	cache       ernieclient.Cache
+	cache       Cache
 }
 
 type Option func(*options)
+
+// Cache 公共缓存
+type Cache interface {
+	Set(key string, value string) error
+	Get(key string) (string, error)
+	Expire(key string, seconds int) error
+}
 
 // WithAKSK passes the ERNIE API Key and Secret Key to the client. If not set, the keys
 // are read from the ERNIE_API_KEY and ERNIE_SECRET_KEY environment variable.
@@ -61,7 +64,7 @@ func WithModelName(modelName ModelName) Option {
 	}
 }
 
-func WithCache(cache ernieclient.Cache) Option {
+func WithCache(cache Cache) Option {
 	return func(opts *options) {
 		opts.cache = cache
 	}

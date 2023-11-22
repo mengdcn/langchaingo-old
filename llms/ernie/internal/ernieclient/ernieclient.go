@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/ernie"
 	"github.com/tmc/langchaingo/schema"
 	"log"
 	"net/http"
@@ -27,14 +28,7 @@ type Client struct {
 	secretKey   string
 	accessToken string
 	httpClient  Doer
-	cache       Cache
-}
-
-// Cache 公共缓存
-type Cache interface {
-	Set(key string, value string) error
-	Get(key string) (string, error)
-	Expire(key string, seconds int) error
+	cache       ernie.Cache
 }
 
 // ModelPath ERNIE API URL path suffix distinguish models.
@@ -157,7 +151,7 @@ func WithAccessToken(accessToken string) Option {
 		return nil
 	}
 }
-func WithCache(cache Cache) Option {
+func WithCache(cache ernie.Cache) Option {
 	return func(c *Client) error {
 		c.cache = cache
 		return nil
