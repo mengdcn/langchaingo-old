@@ -19,7 +19,6 @@ type mcache struct {
 
 func (m mcache) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
 	cmd := m.rdb.Set(ctx, key, value, expiration)
-	fmt.Println("cmd:", cmd.String())
 	if cmd.Err() != nil {
 		return cmd.Err()
 	}
@@ -27,11 +26,7 @@ func (m mcache) Set(ctx context.Context, key string, value interface{}, expirati
 }
 
 func (m mcache) Get(ctx context.Context, key string) (string, error) {
-	cmd := m.rdb.Get(ctx, key)
-	fmt.Println("cmd:", cmd.String())
-	val, err := cmd.Result()
-	return val, err
-
+	return m.rdb.Get(ctx, key).Result()
 }
 
 func main() {
