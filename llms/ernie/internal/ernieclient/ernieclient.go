@@ -8,11 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/ernie"
 	"github.com/tmc/langchaingo/schema"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var (
@@ -28,7 +28,13 @@ type Client struct {
 	secretKey   string
 	accessToken string
 	httpClient  Doer
-	cache       ernie.Cache
+	cache       Cache
+}
+
+// Cache 公共缓存
+type Cache interface {
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	Get(ctx context.Context, key string) (string, error)
 }
 
 // ModelPath ERNIE API URL path suffix distinguish models.
@@ -151,7 +157,7 @@ func WithAccessToken(accessToken string) Option {
 		return nil
 	}
 }
-func WithCache(cache ernie.Cache) Option {
+func WithCache(cache Cache) Option {
 	return func(c *Client) error {
 		c.cache = cache
 		return nil
@@ -188,11 +194,18 @@ func autoRefresh(c *Client) error {
 	var token string
 	var err error
 	if c.cache != nil {
-		token, _ = c.cache.Get(key)
-		fmt.Println("get token from cache:", token)
+		token, err = c.cache.Get(context.Background(), key)
+		if err != nil {
+			fmt.Println("1 get token from cache:", err.Error())
+		}
+		fmt.Println("2 get token from cache:", token)
 	}
+	//token = "24.af3b014b45adcddefb038109407ebf15.2592000.1703232487.282335-38624030"
+	//token = "24.f6de479d0bd5b90449482e7b1e05248f.2592000.1703232748.282335-38624030"
+	//token = ""
 	if token != "" {
 		c.accessToken = token
+		fmt.Println("return")
 		return nil
 	}
 
@@ -200,10 +213,15 @@ func autoRefresh(c *Client) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(authResp.ExpiresIn)
 	c.accessToken = authResp.AccessToken
 	if c.cache != nil {
-		c.cache.Set(key, c.accessToken)
-		c.cache.Expire(key, authResp.ExpiresIn-3600)
+		//err = c.cache.Set(context.Background(), key, c.accessToken, time.Duration(authResp.ExpiresIn-1800))
+		// 文心token默认30天， 缓存28天
+		err = c.cache.Set(context.Background(), key, c.accessToken, time.Second*time.Duration(authResp.ExpiresIn-3600*24*2))
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 	}
 	//go func() { // 30 day expiration, auto refresh access token per 10 days
 	//	for {

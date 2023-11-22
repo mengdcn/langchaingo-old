@@ -3,36 +3,48 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/redis/go-redis/v9"
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ernie"
 	"github.com/tmc/langchaingo/schema"
 	"log"
 	"os"
+	"time"
 )
 
 type mcache struct {
+	rdb *redis.Client
 }
 
-func (m mcache) Set(key string, value string) error {
+func (m mcache) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
+	cmd := m.rdb.Set(ctx, key, value, expiration)
+	fmt.Println("cmd:", cmd.String())
+	if cmd.Err() != nil {
+		return cmd.Err()
+	}
 	return nil
 }
-func (m mcache) Get(key string) (string, error) {
-	return "", nil
-}
-func (m mcache) Expire(key string, seconds int) error {
-	return nil
+
+func (m mcache) Get(ctx context.Context, key string) (string, error) {
+	cmd := m.rdb.Get(ctx, key)
+	fmt.Println("cmd:", cmd.String())
+	val, err := cmd.Result()
+	return val, err
+
 }
 
 func main() {
 
-	//rdb := redis.NewClient(&redis.Options{
-	//	Addr:     "192.168.5.89:6379",
-	//	Password: "",
-	//	DB:       0,
-	//})
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "192.168.5.89:6379",
+		Password: "",
+		DB:       0,
+	})
 
-	cache := mcache{}
+	cache := mcache{
+		rdb: rdb,
+	}
 	k := os.Getenv("ERNIE_API_KEY")
 	v := os.Getenv("ERNIE_SECRET_KEY")
 
@@ -45,7 +57,7 @@ func main() {
 	}
 	ctx := context.Background()
 	messages := []schema.ChatMessage{
-		schema.HumanChatMessage{Content: "以李白的口吻写一首诗"},
+		schema.HumanChatMessage{Content: "介绍一下你自己"},
 	}
 	completion, err := llm.Call(ctx, messages,
 		llms.WithTemperature(0.8),
