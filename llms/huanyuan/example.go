@@ -93,9 +93,9 @@ func streamChat(client *hysdk.TencentHyChat) {
 
 func main() {
 	//登陆控制台获取appID和密钥信息 替换下面的值
-	var SecretID = "AKIDAAyiJesvmSyIQM5dy5xa1DCxVpvoRs42"
-	var SecretKey = "nLgolX6ScXEj3A4jBQSGsIWWIsGPLCqG"
-	var appID int64 = 1253594518
+	var SecretID = "xxxx"
+	var SecretKey = "xxxx"
+	var appID int64 = 1122
 
 	credential := hysdk.NewCredential(SecretID, SecretKey)
 	client := hysdk.NewTencentHyChat(appID, credential)
