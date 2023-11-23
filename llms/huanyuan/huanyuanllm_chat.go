@@ -36,15 +36,7 @@ func NewChat(opts ...Option) (*Chat, error) {
 	if options.modelName == "" {
 		options.modelName = defaultModelName
 	}
-	if options.appId == 0 || options.secretId == "" || options.secretKey == "" {
-		return nil, fmt.Errorf(`%w
-You can pass auth info by use huanyuan.New(huanyuan.WithAppId(""),huanyuan.WithSecretId(""),huanyuan.WithSecretKey("")) ,
-or
-export HUANYUAN_APP_ID={appId} 
-export HUANYUAN_SECRET_ID={Secret id}
-export HUANYUAN_SECRET_KEY={Secret Key}
-doc: https://cloud.tencent.com/document/product/1729/97731`, "授权失败")
-	}
+
 	return &Chat{
 		client: c,
 		model:  options.modelName,
