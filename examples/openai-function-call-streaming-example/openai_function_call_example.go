@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	baseUrl := "https://apiagent.kaopuai.com/v1"
+	baseUrl := "https://api.openai.com/v1"
 	llm, err := openai.NewChat(openai.WithModel("gpt-4"), openai.WithBaseURL(baseUrl))
 	if err != nil {
 		log.Fatal(err)
