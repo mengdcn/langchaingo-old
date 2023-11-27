@@ -21,7 +21,7 @@ func main() {
 	//	fmt.Println(ssp)
 	//	return
 
-	token := os.Getenv("mid_token")
+	token := os.Getenv("MID_TOKEN")
 	// 生成图片任务和查询进度  ----start
 	c, err := thenextleg.New(thenextleg.WithAuthToken(token))
 	if err != nil {

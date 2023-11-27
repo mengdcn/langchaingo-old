@@ -166,9 +166,9 @@ func (t *TheNextLeg) FaceSwap(ctx context.Context, payload *FaceSwapRequest) ([]
 		return nil, err
 	}
 
-	var resp MsgIdResponse
+	//var resp MsgIdResponse
 	var b []byte
-	if b, err = t.doHttp(ctx, url, http.MethodPost, payloadBytes, &resp); err != nil {
+	if b, err = t.doHttp(ctx, url, http.MethodPost, payloadBytes, nil); err != nil {
 		return nil, err
 	}
 	return b, err

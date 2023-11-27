@@ -30,12 +30,14 @@ func main() {
 	//}
 	//fmt.Println("write success")
 
-	llmChat, err := chatglm.NewChat()
+	//model := "chatglm_turbo"
+	model := "characterglm"
+	llmChat, err := chatglm.NewChat(chatglm.WithModel(model))
 	if err != nil {
 		log.Fatal(err)
 	}
 	messages := []schema.ChatMessage{
-		schema.HumanChatMessage{Content: "go语言写一个冒泡"},
+		schema.HumanChatMessage{Content: "介绍一下你自己"},
 	}
 
 	completion, err := llmChat.Call(ctx, messages,

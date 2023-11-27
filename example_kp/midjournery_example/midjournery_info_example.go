@@ -9,8 +9,7 @@ import (
 )
 
 func main() {
-	token := os.Getenv("mid_token")
-	token = "1f230834-46c9-4340-b220-de1e171d9d7b"
+	token := os.Getenv("MID_TOKEN")
 	// 生成图片任务和查询进度  ----start
 	c, err := thenextleg.New(thenextleg.WithAuthToken(token))
 	if err != nil {
