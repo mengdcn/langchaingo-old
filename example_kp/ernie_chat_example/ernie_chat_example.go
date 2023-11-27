@@ -3,32 +3,40 @@ package main
 import (
 	"context"
 	"fmt"
+	goredis "github.com/redis/go-redis/v9"
 	// "github.com/redis/go-redis/v9"
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ernie"
 	"github.com/tmc/langchaingo/schema"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 	"log"
 	"os"
-	"time"
 )
 
 func main() {
 
-	conf := redis.RedisConf{
-		Host:        "192.168.5.89:6379",
-		Type:        "node",
-		Pass:        "",
-		Tls:         false,
-		NonBlock:    false,
-		PingTimeout: time.Second,
+	goredisDb := goredis.NewClient(&goredis.Options{
+		Addr:     "192.168.5.89:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+	cache := ernie.GoRedisCache{
+		Rdb: goredisDb,
 	}
-	rdb := redis.MustNewRedis(conf)
 
-	cache := ernie.GozeroRedisCache{
-		Rdb: rdb,
-	}
+	//conf := redis.RedisConf{
+	//	Host:        "192.168.5.89:6379",
+	//	Type:        "node",
+	//	Pass:        "",
+	//	Tls:         false,
+	//	NonBlock:    false,
+	//	PingTimeout: time.Second,
+	//}
+	//rdb := redis.MustNewRedis(conf)
+	//
+	//cache := ernie.GozeroRedisCache{
+	//	Rdb: rdb,
+	//}
 	k := os.Getenv("ERNIE_API_KEY")
 	v := os.Getenv("ERNIE_SECRET_KEY")
 
