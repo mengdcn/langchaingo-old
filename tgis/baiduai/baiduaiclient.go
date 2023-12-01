@@ -54,7 +54,7 @@ func (b *BaiduAiClient) getAccessToken() (string, error) {
 	if b.token != "" {
 		return b.token, nil
 	}
-	key := "langchain:ernieclient:" + b.ClientId
+	key := "langchain:huihua:" + b.ClientId
 	var token string
 	var err error
 	if b.cache != nil {
