@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -14,19 +15,17 @@ func main() {
 	baseUrl := "https://apiagent.kaopuai.com/v1"
 	ctx := context.Background()
 
-	llmCom, err := openai.New(openai.WithBaseURL(baseUrl), openai.WithModel("gpt-4"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	completion1, err1 := llmCom.Call(ctx, "今天天气怎么样")
-	if err1 != nil {
-		fmt.Println(err1.Error())
-		return
-	}
-	fmt.Println(completion1)
-	fmt.Println(llmCom.GetUsage())
-
-	return
+	//llmCom, err := openai.New(openai.WithBaseURL(baseUrl), openai.WithModel("gpt-4"))
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//completion1, err1 := llmCom.Call(ctx, "今天天气怎么样")
+	//if err1 != nil {
+	//	fmt.Println(err1.Error())
+	//	return
+	//}
+	//fmt.Println(completion1)
+	//fmt.Println(llmCom.GetUsage())
 
 	llm, err := openai.NewChat(openai.WithBaseURL(baseUrl), openai.WithModel("gpt-4"))
 	if err != nil {
@@ -45,7 +44,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(completion)
+	fmt.Println()
+	b, _ := json.Marshal(completion)
+	fmt.Println(string(b))
 	fmt.Println(llm.GetUsage())
 
 }
