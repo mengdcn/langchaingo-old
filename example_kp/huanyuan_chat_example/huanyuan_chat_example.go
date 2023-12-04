@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/huanyuan"
+	"github.com/tmc/langchaingo/llms/hunyuan"
 	"github.com/tmc/langchaingo/schema"
 )
 
 func main() {
-	llm, err := huanyuan.New()
+	llm, err := hunyuan.New()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -23,7 +23,7 @@ func main() {
 	fmt.Println("completion resp: ", string(b))
 	fmt.Println("completion usage: ", llm.GetUsage())
 
-	llmChat, err := huanyuan.NewChat()
+	llmChat, err := hunyuan.NewChat()
 	if err != nil {
 		fmt.Println(err.Error())
 	}

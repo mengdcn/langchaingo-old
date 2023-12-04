@@ -1,4 +1,4 @@
-package huanyuan
+package hunyuan
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/huanyuan/internal/hysdk"
+	"github.com/tmc/langchaingo/llms/hunyuan/internal/hysdk"
 	"github.com/tmc/langchaingo/schema"
 	"time"
 )
@@ -56,7 +56,7 @@ func NewChatWithCallback(handler callbacks.Handler, opts ...Option) (*Chat, erro
 	}
 	if options.appId == 0 || options.secretId == "" || options.secretKey == "" {
 		return nil, fmt.Errorf(`%w
-You can pass auth info by use huanyuan.New(huanyuan.WithAppId(""),huanyuan.WithSecretId(""),huanyuan.WithSecretKey("")) ,
+You can pass auth info by use hunyuan.New(hunyuan.WithAppId(""),hunyuan.WithSecretId(""),hunyuan.WithSecretKey("")) ,
 or
 export HUANYUAN_APP_ID={appId} 
 export HUANYUAN_SECRET_ID={Secret id}
@@ -160,7 +160,7 @@ func (o *Chat) GeneratePrompt(ctx context.Context, promptValues []schema.PromptV
 // CreateEmbedding creates embeddings for the given input texts.
 func (o *Chat) CreateEmbedding(ctx context.Context, texts []string) ([][]float64, error) {
 
-	return nil, errors.New("huanyuan unimpl embedding")
+	return nil, errors.New("hunyuan unimpl embedding")
 }
 
 func getPromptsFromMessageSets(messageSets [][]schema.ChatMessage) []string {

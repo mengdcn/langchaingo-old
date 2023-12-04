@@ -1,4 +1,4 @@
-package huanyuan
+package hunyuan
 
 const (
 	huanyuanAppId     = "HUANYUAN_APP_ID"
@@ -7,7 +7,7 @@ const (
 )
 
 const (
-	ModelNameHuanYuanPro = "huanyuan-pro"
+	ModelNameHuanYuanPro = "hunyuan-pro"
 	defaultModelName     = ModelNameHuanYuanPro
 )
 

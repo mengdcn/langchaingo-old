@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package huanyuan
+package hunyuan
 
 import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/tmc/langchaingo/llms/huanyuan/internal/hysdk"
+	"github.com/tmc/langchaingo/llms/hunyuan/internal/hysdk"
 
 	"time"
 )
