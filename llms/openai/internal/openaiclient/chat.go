@@ -65,9 +65,9 @@ type ChatChoice struct {
 
 // ChatUsage is the usage of a chat completion request.
 type ChatUsage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
+	PromptTokens     int `json:"prompt_tokens,omitempty"`
+	CompletionTokens int `json:"completion_tokens,omitempty"`
+	TotalTokens      int `json:"total_tokens,omitempty"`
 }
 
 // ChatResponse is a response to a chat request.
@@ -77,11 +77,12 @@ type ChatResponse struct {
 	Choices []*ChatChoice `json:"choices,omitempty"`
 	Model   string        `json:"model,omitempty"`
 	Object  string        `json:"object,omitempty"`
-	Usage   struct {
-		CompletionTokens float64 `json:"completion_tokens,omitempty"`
-		PromptTokens     float64 `json:"prompt_tokens,omitempty"`
-		TotalTokens      float64 `json:"total_tokens,omitempty"`
-	} `json:"usage,omitempty"`
+	//Usage   struct {
+	//	CompletionTokens float64 `json:"completion_tokens,omitempty"`
+	//	PromptTokens     float64 `json:"prompt_tokens,omitempty"`
+	//	TotalTokens      float64 `json:"total_tokens,omitempty"`
+	//} `json:"usage,omitempty"`
+	Usage ChatUsage `json:"usage,omitempty"`
 }
 
 // StreamedChatResponsePayload is a chunk from the stream.
@@ -160,6 +161,12 @@ func (c *Client) createChat(ctx context.Context, payload *ChatRequest) (*ChatRes
 	}
 	defer r.Body.Close()
 
+	//resBody, err := io.ReadAll(r.Body)
+	//fmt.Println(string(resBody))
+	if err != nil {
+		fmt.Println("openai http error:", err.Error())
+		return nil, fmt.Errorf("%s", "openai http error:"+err.Error())
+	}
 	if r.StatusCode != http.StatusOK {
 		msg := fmt.Sprintf("API returned unexpected status code: %d", r.StatusCode)
 

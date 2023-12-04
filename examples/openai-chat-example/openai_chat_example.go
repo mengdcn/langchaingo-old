@@ -11,11 +11,28 @@ import (
 )
 
 func main() {
-	llm, err := openai.NewChat()
+	baseUrl := "https://apiagent.kaopuai.com/v1"
+	ctx := context.Background()
+
+	llmCom, err := openai.New(openai.WithBaseURL(baseUrl), openai.WithModel("gpt-4"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	ctx := context.Background()
+	completion1, err1 := llmCom.Call(ctx, "今天天气怎么样")
+	if err1 != nil {
+		fmt.Println(err1.Error())
+		return
+	}
+	fmt.Println(completion1)
+	fmt.Println(llmCom.GetUsage())
+
+	return
+
+	llm, err := openai.NewChat(openai.WithBaseURL(baseUrl), openai.WithModel("gpt-4"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	completion, err := llm.Call(ctx, []schema.ChatMessage{
 		schema.SystemChatMessage{Content: "你是一个AI助手"},
 		schema.HumanChatMessage{Content: "今天天气怎么样"},
@@ -29,4 +46,6 @@ func main() {
 	}
 
 	fmt.Println(completion)
+	fmt.Println(llm.GetUsage())
+
 }

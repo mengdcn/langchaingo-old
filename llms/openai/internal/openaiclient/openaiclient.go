@@ -73,7 +73,8 @@ func New(token string, model string, baseURL string, organization string,
 
 // Completion is a completion.
 type Completion struct {
-	Text string `json:"text"`
+	Text  string `json:"text"`
+	Usage ChatUsage
 }
 
 // CreateCompletion creates a completion.
@@ -87,6 +88,11 @@ func (c *Client) CreateCompletion(ctx context.Context, r *CompletionRequest) (*C
 	}
 	return &Completion{
 		Text: resp.Choices[0].Message.Content,
+		Usage: ChatUsage{
+			PromptTokens:     int(resp.Usage.PromptTokens),
+			CompletionTokens: int(resp.Usage.CompletionTokens),
+			TotalTokens:      int(resp.Usage.TotalTokens),
+		},
 	}, nil
 }
 

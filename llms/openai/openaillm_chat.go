@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"reflect"
+	"strings"
 
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
@@ -15,6 +16,7 @@ type ChatMessage = openaiclient.ChatMessage
 type Chat struct {
 	CallbacksHandler callbacks.Handler
 	client           *openaiclient.Client
+	usage            []openaiclient.ChatUsage
 }
 
 const (
@@ -51,6 +53,7 @@ func (o *Chat) Call(ctx context.Context, messages []schema.ChatMessage, options 
 
 //nolint:funlen
 func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage, options ...llms.CallOption) ([]*llms.Generation, error) { // nolint:lll,cyclop
+	o.ResetUsage()
 	if o.CallbacksHandler != nil {
 		o.CallbacksHandler.HandleLLMStart(ctx, getPromptsFromMessageSets(messageSets))
 	}
@@ -106,6 +109,15 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 			Text:           msg.Content,
 			GenerationInfo: generationInfo,
 		})
+
+		PromptTokens := o.countMessageTokens(messageSet)
+		CompletionTokens := o.GetNumTokens(msg.Content)
+		TotalTokens := PromptTokens + CompletionTokens
+		o.usage = append(o.usage, Usage{
+			PromptTokens:     PromptTokens,
+			CompletionTokens: CompletionTokens,
+			TotalTokens:      TotalTokens,
+		})
 	}
 
 	if o.CallbacksHandler != nil {
@@ -119,12 +131,21 @@ func (o *Chat) GetNumTokens(text string) int {
 	return llms.CountTokens(o.client.Model, text)
 }
 
+func (o *Chat) ResetUsage() {
+	o.usage = make([]openaiclient.ChatUsage, 0, 1)
+}
+
+func (o *Chat) GetUsage() []Usage {
+	return o.usage
+}
+
 func (o *Chat) GeneratePrompt(ctx context.Context, promptValues []schema.PromptValue, options ...llms.CallOption) (llms.LLMResult, error) { //nolint:lll
 	return llms.GenerateChatPrompt(ctx, o, promptValues, options...)
 }
 
 // CreateEmbedding creates embeddings for the given input texts.
 func (o *Chat) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
+	o.ResetUsage()
 	embeddings, err := o.client.CreateEmbedding(ctx, &openaiclient.EmbeddingRequest{
 		Input: inputTexts,
 	})
@@ -136,6 +157,14 @@ func (o *Chat) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]fl
 	}
 	if len(inputTexts) != len(embeddings) {
 		return embeddings, ErrUnexpectedResponseLength
+	}
+	total := o.GetNumTokens(strings.Join(inputTexts, ""))
+	o.usage = []openaiclient.ChatUsage{
+		{
+			PromptTokens:     total,
+			CompletionTokens: 0,
+			TotalTokens:      total,
+		},
 	}
 	return embeddings, nil
 }
@@ -179,4 +208,12 @@ func messagesToClientMessages(messages []schema.ChatMessage) []*openaiclient.Cha
 	}
 
 	return msgs
+}
+
+func (o *Chat) countMessageTokens(messages []schema.ChatMessage) int {
+	content := ""
+	for _, v := range messages {
+		content += v.GetContent()
+	}
+	return o.GetNumTokens(content)
 }
