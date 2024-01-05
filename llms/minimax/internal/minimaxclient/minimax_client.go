@@ -102,21 +102,22 @@ func parseStreamingCompletionResponse(ctx context.Context, resp *http.Response, 
 	scanner := bufio.NewScanner(resp.Body)
 	dataPrefix := "data: "
 	i := 0
-	streamPayload := &Completion{}
+	streamPayload := Completion{}
 	for scanner.Scan() {
+		i++
 		line := scanner.Text()
-		fmt.Printf("%i : %s\n", i, line)
-		if line == "" {
+		fmt.Printf("%d : %s\n", i, line)
+		if line == "\n" || line == "" {
 			continue
 		}
-
 		var data string
 		if !strings.HasPrefix(line, dataPrefix) {
-			data = line
+			continue
 		} else {
 			// 错误  {"error_code":6,"error_msg":"No permission to access data"}
 			data = strings.TrimPrefix(line, dataPrefix)
 		}
+		//fmt.Println("data=====", data)
 		err := json.NewDecoder(bytes.NewReader([]byte(data))).Decode(&streamPayload)
 		if err != nil {
 			log.Fatalf("failed to decode stream payload: %v", err)
@@ -136,5 +137,6 @@ func parseStreamingCompletionResponse(ctx context.Context, resp *http.Response, 
 		log.Println("issue scanning response:", err)
 	}
 
-	return streamPayload, nil
+	fmt.Println("last last :", streamPayload.Choices[0].Messages[0].Text)
+	return &streamPayload, nil
 }

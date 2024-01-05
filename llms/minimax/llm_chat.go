@@ -83,6 +83,8 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 			//RequestId : opts.RequestId,
 			Stream:            opts.StreamingFunc != nil,
 			MaskSensitiveInfo: false, // 对输出中易涉及隐私问题的文本信息进行打码，目前包括但不限于邮箱、域名、链接、证件号、家庭住址等，默认true，即开启打码
+			Functions:         opts.Functions,
+			//FunctionCallSetting   自动模式等
 		}
 
 		result, err := o.client.CreateCompletion(ctx, req)
@@ -105,6 +107,12 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 		generationInfo["TotalTokens"] = result.Usage.TotalTokens
 		msg := &schema.AIChatMessage{
 			Content: result.Choices[0].Messages[0].Text,
+		}
+		if result.Choices[0].Messages[0].FunctionCall != nil {
+			msg.FunctionCall = &schema.FunctionCall{
+				Name:      result.Choices[0].Messages[0].FunctionCall.Name,
+				Arguments: result.Choices[0].Messages[0].FunctionCall.Arguments,
+			}
 		}
 		generations = append(generations, &llms.Generation{
 			Message:        msg,

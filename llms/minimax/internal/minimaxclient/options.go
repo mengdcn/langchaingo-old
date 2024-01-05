@@ -136,18 +136,18 @@ type FunctionCallSetting struct {
 }
 
 type Completion struct {
-	Created             int64        `json:"created,omitempty"`               //请求发起时间
-	Model               string       `json:"model,omitempty"`                 //请求指定的模型名称
-	Reply               string       `json:"reply,omitempty"`                 //回复内容
-	InputSensitive      bool         `json:"input_sensitive,omitempty"`       //输入命中敏感词
-	InputSensitiveType  int64        `json:"input_sensitive_type,omitempty"`  //输入命中敏感词类型，当input_sensitive为true时返回  取值为以下其一 1 严重违规 2 色情 3 广告 4 违禁 5 谩骂 6 暴恐 7 其他
-	OutputSensitive     bool         `json:"output_sensitive,omitempty"`      // 输出命中敏感词
-	OutputSensitiveType int64        `json:"output_sensitive_type,omitempty"` //输出命中敏感词类型，当output_sensitive为true时返回,  取值同input_sensitive_type
-	Choices             []Choice     `json:"choices,omitempty"`               // 所有结果
-	Usage               Usage        `json:"usage,omitempty"`                 // 流式场景下，增量数据包不含该字段；全量（最后一个）数据包含有该字段
-	Id                  string       `json:"id,omitempty"`                    //
-	BaseResp            BaseResp     `json:"base_resp,omitempty"`             // 错误状态码和详情
-	FunctionCall        FunctionCall `json:"function_call,omitempty"`         // 调用的函数
+	Created             int64         `json:"created,omitempty"`               //请求发起时间
+	Model               string        `json:"model,omitempty"`                 //请求指定的模型名称
+	Reply               string        `json:"reply,omitempty"`                 //回复内容
+	InputSensitive      bool          `json:"input_sensitive,omitempty"`       //输入命中敏感词
+	InputSensitiveType  int64         `json:"input_sensitive_type,omitempty"`  //输入命中敏感词类型，当input_sensitive为true时返回  取值为以下其一 1 严重违规 2 色情 3 广告 4 违禁 5 谩骂 6 暴恐 7 其他
+	OutputSensitive     bool          `json:"output_sensitive,omitempty"`      // 输出命中敏感词
+	OutputSensitiveType int64         `json:"output_sensitive_type,omitempty"` //输出命中敏感词类型，当output_sensitive为true时返回,  取值同input_sensitive_type
+	Choices             []Choice      `json:"choices,omitempty"`               // 所有结果
+	Usage               Usage         `json:"usage,omitempty"`                 // 流式场景下，增量数据包不含该字段；全量（最后一个）数据包含有该字段
+	Id                  string        `json:"id,omitempty"`                    //
+	BaseResp            BaseResp      `json:"base_resp,omitempty"`             // 错误状态码和详情
+	FunctionCall        *FunctionCall `json:"function_call,omitempty"`         // 调用的函数
 }
 
 type Choice struct {

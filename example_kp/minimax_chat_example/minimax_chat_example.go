@@ -23,7 +23,7 @@ func main() {
 		schema.HumanChatMessage{Content: "介绍一下你自己"},
 	}
 	result, err := llmChat.Call(ctx, messages, llms.WithStreamingFunc(func(ctx context.Context, chunk []byte) error {
-		fmt.Println(string(chunk))
+		fmt.Println("=======", string(chunk))
 		return nil
 	}))
 	if err != nil {
@@ -31,7 +31,5 @@ func main() {
 	}
 	fmt.Println("result", result.Content)
 	fmt.Println("usage", llmChat.GetUsage())
-
-	// function call
 
 }
