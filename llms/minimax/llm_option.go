@@ -1,7 +1,7 @@
 package minimax
 
 import (
-	"github.com/tmc/langchaingo/llms/minimax/internal/minimaxclient"
+	"github.com/tmc/langchaingo/llms/minimax/minimaxclient"
 )
 
 const (
@@ -17,12 +17,6 @@ const (
 	defaultBotName        = "靠谱大语言模型"
 	defaultBotDescription = "靠谱大语言模型是一款由靠谱AI智能科技自研的，没有调用其他产品的接口的大型语言模型。靠谱AI智能科技是一家中国科技公司，一直致力于进行大模型相关的研究。"
 )
-
-type Usage = minimaxclient.Usage
-
-type MiniMaxChatRequest = minimaxclient.CompletionRequest
-
-type MiniMaxCompletion = minimaxclient.Completion
 
 type options struct {
 	groupId        string

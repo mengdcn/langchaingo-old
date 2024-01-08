@@ -3,7 +3,7 @@ package minimax
 import (
 	"errors"
 	"fmt"
-	"github.com/tmc/langchaingo/llms/minimax/internal/minimaxclient"
+	minimaxclient2 "github.com/tmc/langchaingo/llms/minimax/minimaxclient"
 	"net/http"
 	"os"
 )
@@ -14,7 +14,7 @@ var (
 	ErrUnexpectedResponseLength = errors.New("unexpected length of response")
 )
 
-func newClient(opts ...Option) (*minimaxclient.Client, error) {
+func newClient(opts ...Option) (*minimaxclient2.Client, error) {
 	options := &options{
 		groupId:        os.Getenv(groupIdEnvVarName),
 		apiKey:         os.Getenv(apiKeyEnvVarName),
@@ -38,11 +38,11 @@ func newClient(opts ...Option) (*minimaxclient.Client, error) {
 		options.embeddingModel = defaultEmbeddingModel
 	}
 
-	return minimaxclient.NewClient(minimaxclient.WithGroupId(options.groupId),
-		minimaxclient.WithApiKey(options.apiKey),
-		minimaxclient.WithBaseUrl(options.baseUrl),
-		minimaxclient.WithHttpClient(options.httpClient),
-		minimaxclient.WithModel(options.model),
-		minimaxclient.WithEmbeddingsModel(options.embeddingModel),
+	return minimaxclient2.NewClient(minimaxclient2.WithGroupId(options.groupId),
+		minimaxclient2.WithApiKey(options.apiKey),
+		minimaxclient2.WithBaseUrl(options.baseUrl),
+		minimaxclient2.WithHttpClient(options.httpClient),
+		minimaxclient2.WithModel(options.model),
+		minimaxclient2.WithEmbeddingsModel(options.embeddingModel),
 	)
 }

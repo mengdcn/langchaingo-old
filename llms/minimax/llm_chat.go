@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/minimax/internal/minimaxclient"
+	minimaxclient2 "github.com/tmc/langchaingo/llms/minimax/minimaxclient"
 	"github.com/tmc/langchaingo/schema"
 	"reflect"
 )
 
 type Chat struct {
 	CallbacksHandler callbacks.Handler
-	client           *minimaxclient.Client
-	usage            []minimaxclient.Usage
+	client           *minimaxclient2.Client
+	usage            []minimaxclient2.Usage
 	chatError        error // 每次模型调用的错误信息
 }
 
@@ -71,14 +71,14 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 
 	for _, messageSet := range messageSets {
 		clientMsg, setting, reply := messagesToClientMessages(messageSet)
-		req := &minimaxclient.CompletionRequest{
+		req := &minimaxclient2.CompletionRequest{
 			Model:            opts.Model,
 			Messages:         clientMsg,
 			StreamingFunc:    opts.StreamingFunc,
 			TokensToGenerate: int64(opts.MaxTokens),
 			Temperature:      float32(opts.Temperature),
 			TopP:             float32(opts.TopP),
-			BotSetting:       []minimaxclient.BotSetting{setting},
+			BotSetting:       []minimaxclient2.BotSetting{setting},
 			ReplyConstraints: reply,
 			//RequestId : opts.RequestId,
 			Stream:            opts.StreamingFunc != nil,
@@ -130,7 +130,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 }
 
 // CreateChat 支持全部参数的实现
-func (o *Chat) CreateChat(ctx context.Context, r *MiniMaxChatRequest) (*MiniMaxCompletion, error) {
+func (o *Chat) CreateRawChat(ctx context.Context, r *minimaxclient2.CompletionRequest) (*minimaxclient2.Completion, error) {
 	o.ResetUsage()
 	if o.CallbacksHandler != nil {
 		o.CallbacksHandler.HandleLLMStart(ctx, getPromptsFromMiniMaxMessageSets(r.Messages))
@@ -158,7 +158,7 @@ func (o *Chat) GetNumTokens(text string) int {
 }
 
 func (o *Chat) ResetUsage() {
-	o.usage = make([]minimaxclient.Usage, 0, 1)
+	o.usage = make([]minimaxclient2.Usage, 0, 1)
 }
 
 func (o *Chat) SetError(text string) {
@@ -169,7 +169,7 @@ func (o *Chat) GetError() error {
 	return o.chatError
 }
 
-func (o *Chat) GetUsage() []Usage {
+func (o *Chat) GetUsage() []minimaxclient2.Usage {
 	return o.usage
 }
 
@@ -186,14 +186,14 @@ func (o *Chat) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]fl
 func (o *Chat) CreateDbEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
 	o.ResetUsage()
 
-	result, err := o.client.CreateEmbedding(ctx, &minimaxclient.EmbeddingPayload{
+	result, err := o.client.CreateEmbedding(ctx, &minimaxclient2.EmbeddingPayload{
 		Texts: inputTexts,
 		Type:  "db", //db query
 	})
 	if err != nil {
 		return nil, err
 	}
-	o.usage = append(o.usage, Usage{TotalTokens: result.TotalTokens})
+	o.usage = append(o.usage, minimaxclient2.Usage{TotalTokens: result.TotalTokens})
 	return result.Vectors, nil
 }
 
@@ -201,14 +201,14 @@ func (o *Chat) CreateDbEmbedding(ctx context.Context, inputTexts []string) ([][]
 func (o *Chat) CreateQueryEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
 	o.ResetUsage()
 
-	result, err := o.client.CreateEmbedding(ctx, &minimaxclient.EmbeddingPayload{
+	result, err := o.client.CreateEmbedding(ctx, &minimaxclient2.EmbeddingPayload{
 		Texts: inputTexts,
 		Type:  "query", //db query
 	})
 	if err != nil {
 		return nil, err
 	}
-	o.usage = append(o.usage, Usage{TotalTokens: result.TotalTokens})
+	o.usage = append(o.usage, minimaxclient2.Usage{TotalTokens: result.TotalTokens})
 	return result.Vectors, nil
 }
 
@@ -225,7 +225,7 @@ func getPromptsFromMessageSets(messageSets [][]schema.ChatMessage) []string {
 	return prompts
 }
 
-func getPromptsFromMiniMaxMessageSets(messageSets []*minimaxclient.Message) []string {
+func getPromptsFromMiniMaxMessageSets(messageSets []*minimaxclient2.Message) []string {
 	prompts := make([]string, 0, len(messageSets))
 	for i := 0; i < len(messageSets); i++ {
 		prompts = append(prompts, messageSets[i].Text)
@@ -234,13 +234,13 @@ func getPromptsFromMiniMaxMessageSets(messageSets []*minimaxclient.Message) []st
 	return prompts
 }
 
-func messagesToClientMessages(messages []schema.ChatMessage) ([]*minimaxclient.Message, minimaxclient.BotSetting, minimaxclient.ReplyConstraints) {
+func messagesToClientMessages(messages []schema.ChatMessage) ([]*minimaxclient2.Message, minimaxclient2.BotSetting, minimaxclient2.ReplyConstraints) {
 
-	setting := minimaxclient.BotSetting{
+	setting := minimaxclient2.BotSetting{
 		BotName: defaultBotName,
 		Content: defaultBotDescription,
 	}
-	replyConstraints := minimaxclient.ReplyConstraints{
+	replyConstraints := minimaxclient2.ReplyConstraints{
 		SenderType: defaultSendType,
 		SenderName: defaultBotName,
 	}
@@ -254,10 +254,10 @@ func messagesToClientMessages(messages []schema.ChatMessage) ([]*minimaxclient.M
 		}
 	}
 
-	msgs := make([]*minimaxclient.Message, msglen)
+	msgs := make([]*minimaxclient2.Message, msglen)
 	for i, m := range messages {
 		typ := m.GetType()
-		msg := &minimaxclient.Message{
+		msg := &minimaxclient2.Message{
 			SenderType: string(m.GetType()),
 			SenderName: "",
 			Text:       m.GetContent(),

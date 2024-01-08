@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"github.com/tmc/langchaingo/callbacks"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/minimax/internal/minimaxclient"
+	minimaxclient2 "github.com/tmc/langchaingo/llms/minimax/minimaxclient"
 	"github.com/tmc/langchaingo/schema"
 	"reflect"
 )
 
 type LLM struct {
 	CallbacksHandler callbacks.Handler
-	client           *minimaxclient.Client
-	usage            []minimaxclient.Usage
+	client           *minimaxclient2.Client
+	usage            []minimaxclient2.Usage
 	chatError        error // 每次模型调用的错误信息
 }
 
@@ -66,9 +66,9 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 	generations := make([]*llms.Generation, 0, len(prompts))
 
 	for _, prompt := range prompts {
-		req := &minimaxclient.CompletionRequest{
+		req := &minimaxclient2.CompletionRequest{
 			Model: opts.Model,
-			Messages: []*minimaxclient.Message{
+			Messages: []*minimaxclient2.Message{
 				{
 					SenderType: "USER",
 					SenderName: defaultSendName,
@@ -79,11 +79,11 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 			TokensToGenerate: int64(opts.MaxTokens),
 			Temperature:      float32(opts.Temperature),
 			TopP:             float32(opts.TopP),
-			BotSetting: []minimaxclient.BotSetting{{
+			BotSetting: []minimaxclient2.BotSetting{{
 				BotName: defaultBotName,
 				Content: defaultBotDescription,
 			}},
-			ReplyConstraints: minimaxclient.ReplyConstraints{
+			ReplyConstraints: minimaxclient2.ReplyConstraints{
 				SenderType: defaultSendType,
 				SenderName: defaultBotName,
 			},
@@ -133,7 +133,7 @@ func (o *LLM) GetNumTokens(text string) int {
 }
 
 func (o *LLM) ResetUsage() {
-	o.usage = make([]minimaxclient.Usage, 0, 1)
+	o.usage = make([]minimaxclient2.Usage, 0, 1)
 }
 
 func (o *LLM) SetError(text string) {
@@ -144,7 +144,7 @@ func (o *LLM) GetError() error {
 	return o.chatError
 }
 
-func (o *LLM) GetUsage() []Usage {
+func (o *LLM) GetUsage() []minimaxclient2.Usage {
 	return o.usage
 }
 
@@ -171,14 +171,14 @@ func (o *LLM) CreateEmbedding(ctx context.Context, inputTexts []string) ([][]flo
 func (o *LLM) CreateDbEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
 	o.ResetUsage()
 
-	result, err := o.client.CreateEmbedding(ctx, &minimaxclient.EmbeddingPayload{
+	result, err := o.client.CreateEmbedding(ctx, &minimaxclient2.EmbeddingPayload{
 		Texts: inputTexts,
 		Type:  "db", //db query
 	})
 	if err != nil {
 		return nil, err
 	}
-	o.usage = append(o.usage, Usage{TotalTokens: result.TotalTokens})
+	o.usage = append(o.usage, minimaxclient2.Usage{TotalTokens: result.TotalTokens})
 	return result.Vectors, nil
 }
 
@@ -186,13 +186,13 @@ func (o *LLM) CreateDbEmbedding(ctx context.Context, inputTexts []string) ([][]f
 func (o *LLM) CreateQueryEmbedding(ctx context.Context, inputTexts []string) ([][]float64, error) {
 	o.ResetUsage()
 
-	result, err := o.client.CreateEmbedding(ctx, &minimaxclient.EmbeddingPayload{
+	result, err := o.client.CreateEmbedding(ctx, &minimaxclient2.EmbeddingPayload{
 		Texts: inputTexts,
 		Type:  "query", //db query
 	})
 	if err != nil {
 		return nil, err
 	}
-	o.usage = append(o.usage, Usage{TotalTokens: result.TotalTokens})
+	o.usage = append(o.usage, minimaxclient2.Usage{TotalTokens: result.TotalTokens})
 	return result.Vectors, nil
 }
