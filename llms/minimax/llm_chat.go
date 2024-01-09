@@ -97,6 +97,7 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 		}
 		if result.OutputSensitive {
 			o.SetError(fmt.Sprintf("输出命中敏感词：%s", SensitiveTypeToValue(result.OutputSensitiveType)))
+			return nil, o.GetError()
 		}
 		if result.BaseResp.StatusCode == 0 && len(result.Choices) == 0 {
 			return nil, ErrEmptyResponse
