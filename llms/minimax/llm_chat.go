@@ -269,7 +269,7 @@ func messagesToClientMessages(messages []schema.ChatMessage) ([]*minimaxclient2.
 		//	continue
 		case schema.ChatMessageTypeAI:
 			msg.SenderType = defaultSendType
-			msg.SenderName = defaultSendName
+			msg.SenderName = defaultBotName
 		case schema.ChatMessageTypeHuman:
 			msg.SenderType = "USER"
 			msg.SenderName = defaultSendName
