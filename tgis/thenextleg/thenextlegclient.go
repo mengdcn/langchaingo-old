@@ -102,6 +102,7 @@ type Response struct {
 	Type                 string   `json:"type,omitempty"`
 	Ref                  string   `json:"ref,omitempty"`
 	ResponseAt           string   `json:"responseAt,omitempty"`
+	Description          string   `json:"description,omitempty"`
 }
 
 // Message 获取任务进入，progress 值100：success， 37：生成进度， "incomplete"：失败，未完成
