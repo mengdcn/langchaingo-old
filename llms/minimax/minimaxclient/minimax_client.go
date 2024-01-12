@@ -125,7 +125,11 @@ func parseStreamingCompletionResponse(ctx context.Context, resp *http.Response, 
 		if streamPayload.OutputSensitive {
 			return nil, errors.New("内容违规")
 		}
+
 		if request.StreamingFunc != nil && len(streamPayload.Choices) > 0 && len(streamPayload.Choices[0].Messages) > 0 {
+			if streamPayload.Choices[0].FinishReason == "stop" {
+				break
+			}
 			err = request.StreamingFunc(ctx, []byte(streamPayload.Choices[0].Messages[0].Text))
 			if err != nil {
 				return nil, fmt.Errorf("streaming func returned an error: %w", err)
