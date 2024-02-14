@@ -55,7 +55,7 @@ func main() {
 	}()
 
 	ctx = context.Background()
-	dType := cleanup
+	dType := textInpainting // cleanup
 	imagineResponse := &clipdropapiParams.ImagesResponse{}
 
 	switch dType {
@@ -130,7 +130,7 @@ func main() {
 }
 
 func testCleanup() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.CleanupRequest{}
+	imageRequest := &clipdropapiParams.CleanupRequest{}
 	imageRequest.ImageFile = imagesResource + "clean.jpeg"
 	imageRequest.MaskFile = imagesResource + "clean-mask.png"
 	imageRequest.Mode = "quality" //  可选字段，可以设置为fast或quality控制速度和质量之间的权衡, fast是默认模式，速度更快，但可能会在结果图像中产生伪影; quality速度较慢，但会产生更好的结果
@@ -145,7 +145,7 @@ func testCleanup() (imagesResponse *clipdropapiParams.ImagesResponse, err error)
 }
 
 func testImageUpscale() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.ImageUpscaleRequest{}
+	imageRequest := &clipdropapiParams.ImageUpscaleRequest{}
 	imageRequest.ImageFile = imagesResource + "image-upscaling.png"
 	imageRequest.TargetWidth = 4096
 	imageRequest.TargetHeight = 4096
@@ -160,7 +160,7 @@ func testImageUpscale() (imagesResponse *clipdropapiParams.ImagesResponse, err e
 }
 
 func testPortraitDepth() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.PortraitDepthEstimationRequest{}
+	imageRequest := &clipdropapiParams.PortraitDepthEstimationRequest{}
 	imageRequest.ImageFile = imagesResource + "reimagine_1024x1024.jpg"
 
 	imagesResponse, err = clipdropApi.PortraitDepth(ctx, imageRequest)
@@ -173,7 +173,7 @@ func testPortraitDepth() (imagesResponse *clipdropapiParams.ImagesResponse, err 
 }
 
 func testPortraitSurface() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.PortraitSurfaceNormalsRequest{}
+	imageRequest := &clipdropapiParams.PortraitSurfaceNormalsRequest{}
 	imageRequest.ImageFile = imagesResource + "reimagine_1024x1024.jpg"
 
 	imagesResponse, err = clipdropApi.PortraitSurface(ctx, imageRequest)
@@ -186,7 +186,7 @@ func testPortraitSurface() (imagesResponse *clipdropapiParams.ImagesResponse, er
 }
 
 func testReimagine() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.ReimagineRequest{}
+	imageRequest := &clipdropapiParams.ReimagineRequest{}
 	imageRequest.ImageFile = imagesResource + "reimagine_1024x1024.jpg"
 
 	imagesResponse, err = clipdropApi.Reimagine(ctx, imageRequest)
@@ -199,7 +199,7 @@ func testReimagine() (imagesResponse *clipdropapiParams.ImagesResponse, err erro
 }
 
 func testRemoveBackground() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.RemoveBackgroundRequest{}
+	imageRequest := &clipdropapiParams.RemoveBackgroundRequest{}
 	imageRequest.ImageFile = imagesResource + "remove-background.jpeg"
 
 	imagesResponse, err = clipdropApi.RemoveBackground(ctx, imageRequest)
@@ -212,7 +212,7 @@ func testRemoveBackground() (imagesResponse *clipdropapiParams.ImagesResponse, e
 }
 
 func testRemoveText() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.RemoveTextRequest{}
+	imageRequest := &clipdropapiParams.RemoveTextRequest{}
 	imageRequest.ImageFile = imagesResource + "remove-text-2_923x693.png"
 
 	imagesResponse, err = clipdropApi.RemoveText(ctx, imageRequest)
@@ -225,7 +225,7 @@ func testRemoveText() (imagesResponse *clipdropapiParams.ImagesResponse, err err
 }
 
 func testReplaceBackground() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.ReplaceBackgroundRequest{}
+	imageRequest := &clipdropapiParams.ReplaceBackgroundRequest{}
 	imageRequest.ImageFile = imagesResource + "replace-background.jpg"
 	imageRequest.Prompt = "a cozy marble kitchen with wine glasses"
 
@@ -239,7 +239,7 @@ func testReplaceBackground() (imagesResponse *clipdropapiParams.ImagesResponse, 
 }
 
 func testSketchToImage() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.SketchToImageRequest{}
+	imageRequest := &clipdropapiParams.SketchToImageRequest{}
 	imageRequest.SketchFile = imagesResource + "Sketch-to-image_1024x1024.png"
 	imageRequest.Prompt = "an owl on a branch, cinematic"
 
@@ -253,7 +253,7 @@ func testSketchToImage() (imagesResponse *clipdropapiParams.ImagesResponse, err 
 }
 
 func testTextInpainting() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.TextInpaintingRequest{}
+	imageRequest := &clipdropapiParams.TextInpaintingRequest{}
 	imageRequest.ImageFile = imagesResource + "text-inpainting.jpeg"
 	imageRequest.MaskFile = imagesResource + "TextInpainting-mask_file.png"
 	imageRequest.TextPrompt = "A woman with a red scarf"
@@ -268,7 +268,7 @@ func testTextInpainting() (imagesResponse *clipdropapiParams.ImagesResponse, err
 }
 
 func testUnCrop() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imageRequest := clipdropapiParams.UnCropRequest{}
+	imageRequest := &clipdropapiParams.UnCropRequest{}
 	imageRequest.ImageFile = imagesResource + "image-upscaling.png"
 	imageRequest.ExtendLeft = 1000 // 可选 最大为 2k，默认为 0 【正负2k】
 	imageRequest.ExtendRight = 1000
@@ -285,7 +285,7 @@ func testUnCrop() (imagesResponse *clipdropapiParams.ImagesResponse, err error) 
 }
 
 func testImage() (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
-	imagineRequest := clipdropapiParams.ImagesRequest{}
+	imagineRequest := &clipdropapiParams.ImagesRequest{}
 	imagineRequest.Prompt = "shot of vaporwave fashion dog in miami"
 
 	defer func() {

@@ -72,7 +72,7 @@ func New(opts ...Option) (*ClipDropApi, error) {
 	return c, nil
 }
 
-func (t *ClipDropApi) Cleanup(ctx context.Context, imageRequest clipdropapiParams.CleanupRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) Cleanup(ctx context.Context, imageRequest *clipdropapiParams.CleanupRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", baseUrl, cleanupAPI)
 	//imageRequest := clipdropapiParams.CleanupRequest{}
 	//imageRequest.ImageFile = "./clean.jpeg"
@@ -101,7 +101,7 @@ func (t *ClipDropApi) Cleanup(ctx context.Context, imageRequest clipdropapiParam
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) ImageUpscale(ctx context.Context, imageRequest clipdropapiParams.ImageUpscaleRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) ImageUpscale(ctx context.Context, imageRequest *clipdropapiParams.ImageUpscaleRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, imageUpscaleAPI)
 	//imageRequest := clipdropapiParams.ImageUpscaleRequest{}
 	//imageRequest.ImageFile = "./images/1707202609.png"
@@ -130,7 +130,7 @@ func (t *ClipDropApi) ImageUpscale(ctx context.Context, imageRequest clipdropapi
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) PortraitDepth(ctx context.Context, imageRequest clipdropapiParams.PortraitDepthEstimationRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) PortraitDepth(ctx context.Context, imageRequest *clipdropapiParams.PortraitDepthEstimationRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, portraitDepthAPI)
 	//imageRequest := clipdropapiParams.PortraitSurfaceNormalsRequest{}
 	//imageRequest.ImageFile = "./reimagine_1024x1024.jpg"
@@ -157,7 +157,7 @@ func (t *ClipDropApi) PortraitDepth(ctx context.Context, imageRequest clipdropap
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) PortraitSurface(ctx context.Context, imageRequest clipdropapiParams.PortraitSurfaceNormalsRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) PortraitSurface(ctx context.Context, imageRequest *clipdropapiParams.PortraitSurfaceNormalsRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, portraitSurfaceAPI)
 	//imageRequest := clipdropapiParams.PortraitSurfaceNormalsRequest{}
 	//imageRequest.ImageFile = "./reimagine_1024x1024.jpg"
@@ -184,7 +184,7 @@ func (t *ClipDropApi) PortraitSurface(ctx context.Context, imageRequest clipdrop
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) Reimagine(ctx context.Context, imageRequest clipdropapiParams.ReimagineRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) Reimagine(ctx context.Context, imageRequest *clipdropapiParams.ReimagineRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, reimagineAPI)
 	//imageRequest := clipdropapiParams.ReimagineRequest{}
 	//imageRequest.ImageFile = "./reimagine_1024x1024.jpg"
@@ -211,7 +211,7 @@ func (t *ClipDropApi) Reimagine(ctx context.Context, imageRequest clipdropapiPar
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) RemoveBackground(ctx context.Context, imageRequest clipdropapiParams.RemoveBackgroundRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) RemoveBackground(ctx context.Context, imageRequest *clipdropapiParams.RemoveBackgroundRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, removeBackgroundAPI)
 	//imageRequest := clipdropapiParams.RemoveBackgroundRequest{}
 	//imageRequest.ImageFile = "./remove-background.jpeg"
@@ -238,7 +238,7 @@ func (t *ClipDropApi) RemoveBackground(ctx context.Context, imageRequest clipdro
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) RemoveText(ctx context.Context, imageRequest clipdropapiParams.RemoveTextRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) RemoveText(ctx context.Context, imageRequest *clipdropapiParams.RemoveTextRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, removeTextAPI)
 	//imageRequest := clipdropapiParams.RemoveTextRequest{}
 	//imageRequest.ImageFile = "./remove-text-2_923x693.png"
@@ -265,7 +265,7 @@ func (t *ClipDropApi) RemoveText(ctx context.Context, imageRequest clipdropapiPa
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) ReplaceBackground(ctx context.Context, imageRequest clipdropapiParams.ReplaceBackgroundRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) ReplaceBackground(ctx context.Context, imageRequest *clipdropapiParams.ReplaceBackgroundRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, replaceBackgroundAPI)
 	//imageRequest := clipdropapiParams.ReplaceBackgroundRequest{}
 	//imageRequest.ImageFile = "./replace-background.jpg"
@@ -293,7 +293,7 @@ func (t *ClipDropApi) ReplaceBackground(ctx context.Context, imageRequest clipdr
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) SketchToImage(ctx context.Context, imageRequest clipdropapiParams.SketchToImageRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) SketchToImage(ctx context.Context, imageRequest *clipdropapiParams.SketchToImageRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, sketchToImageAPI)
 	//imageRequest := clipdropapiParams.SketchToImageRequest{}
 	//imageRequest.SketchFile = "./Sketch-to-image_1024x1024.png"
@@ -321,7 +321,7 @@ func (t *ClipDropApi) SketchToImage(ctx context.Context, imageRequest clipdropap
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) TextInpainting(ctx context.Context, imageRequest clipdropapiParams.TextInpaintingRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) TextInpainting(ctx context.Context, imageRequest *clipdropapiParams.TextInpaintingRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, textInpaintAPI)
 	//imageRequest := clipdropapiParams.TextInpaintingRequest{}
 	//imageRequest.ImageFile = "./text-inpainting.jpeg"
@@ -350,7 +350,7 @@ func (t *ClipDropApi) TextInpainting(ctx context.Context, imageRequest clipdropa
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) UnCrop(ctx context.Context, imageRequest clipdropapiParams.UnCropRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) UnCrop(ctx context.Context, imageRequest *clipdropapiParams.UnCropRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	url := fmt.Sprintf("%s/%s", t.baseUrl, unCropAPI)
 	//imageRequest := clipdropapiParams.UncropRequest{}
 	//imageRequest.ImageFile = "./image-upscaling.png"
@@ -379,7 +379,7 @@ func (t *ClipDropApi) UnCrop(ctx context.Context, imageRequest clipdropapiParams
 	return imagesResponse, err
 }
 
-func (t *ClipDropApi) Images(ctx context.Context, imagineRequest clipdropapiParams.ImagesRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
+func (t *ClipDropApi) Images(ctx context.Context, imagineRequest *clipdropapiParams.ImagesRequest) (imagesResponse *clipdropapiParams.ImagesResponse, err error) {
 	fmt.Println("Images start")
 	url := fmt.Sprintf("%s/%s", t.baseUrl, textToImageAPI)
 	//imagineRequest := clipdropapiParams.ImagineRequest{}
@@ -513,11 +513,25 @@ func (t *ClipDropApi) createMultipartFormData(params any) (*bytes.Buffer, *multi
 	// 获取结构体的反射值
 	value := reflect.ValueOf(params)
 	// 获取结构体的反射类型
-	typ := value.Type()
+	//typ := value.Type()
+	// 如果传入的是结构体指针，则获取其指向的结构体值
+	if value.Kind() == reflect.Ptr {
+		fmt.Println("val.Kind() == reflect.Ptr val.Elem()", value.Elem())
+		value = value.Elem()
+	}
+	fmt.Println("val", value)
+
+	// 确保现在处理的是结构体值
+	if value.Kind() != reflect.Struct {
+		fmt.Println("Error: expected a struct")
+		err := errors.New("Error: expected a struct")
+		return body, writer, err
+	}
 
 	// 遍历结构体的字段
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
+	for i := 0; i < value.NumField(); i++ {
+		//field := typ.Field(i)
+		field := value.Type().Field(i)
 		fieldValue := value.Field(i)
 		tagValue := field.Tag.Get("json")
 		fieldForm := tagValue
