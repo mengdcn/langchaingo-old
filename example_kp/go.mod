@@ -69,4 +69,5 @@ require (
 
 //replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => github.com/comqositi/langchaingo v0.1.2
 
-replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => /Users/a1-6/Documents/bgy/kaopuai/langchaingo
+//replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => /Users/a1-6/Documents/bgy/kaopuai/langchaingo
+replace github.com/tmc/langchaingo v0.0.0-20230829032728-c85d3967da08 => /Users/mac/mengdc/project/src/local/sd/langchaingo
