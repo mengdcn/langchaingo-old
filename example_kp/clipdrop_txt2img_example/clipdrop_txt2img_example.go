@@ -55,7 +55,7 @@ func main() {
 	}()
 
 	ctx = context.Background()
-	dType := textInpainting // cleanup
+	dType := unCrop // cleanup
 	imagineResponse := &clipdropapiParams.ImagesResponse{}
 
 	switch dType {
